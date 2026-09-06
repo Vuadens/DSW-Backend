@@ -3,17 +3,14 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql" 
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
 model Plan {
-  id          Int      @id @default(autoincrement())
+  idPlan      Int      @id @default(autoincrement())
   nombre      String
-  descripcion String?
+  tipo        String   //Premium-Pro-Estandar
   precio      Decimal
-  duracionMeses Int    @default(1)
-  activo      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  activo      Boolean  @default(true)   //Para dar de baja o no el plan
 }
