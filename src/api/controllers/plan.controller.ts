@@ -27,13 +27,16 @@ export const getPlanes = async (req: Request, res: Response) => {
 export const createPlan = async (req: Request, res: Response) => {
   try {
     // 1. Extraemos los datos que nos envía el cliente en el "body"
-    const { nombre, tipo, precio } = req.body;
+    const { nombre, tipo, precio, descripcion, duracionMeses, activo } = req.body;
     // 2. Usamos Prisma para crear un nuevo registro en la tabla "Plan"
     const nuevoPlan = await prisma.plan.create({        //El await hace que el código espere ahí mismo hasta que MySQL confirme que se guardó.
       data: {
         nombre,
         tipo,
-        precio: Number(precio)
+        precio: Number(precio),
+        descripcion,
+        duracionMeses: duracionMeses !== undefined ? Number(duracionMeses) : undefined,
+        activo: activo !== undefined ? Boolean(activo) : undefined
       }
     });
     // 3. Respondemos con un código 201 (que en HTTP significa "Creado exitosamente")
@@ -41,5 +44,24 @@ export const createPlan = async (req: Request, res: Response) => {
   } catch (error) {
     console.log("Error real de Prisma al crear:", error);
     res.status(500).json({ error: 'Error al crear el nuevo plan' });
+  }
+};
+
+export const getPlanById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const plan = await prisma.plan.findUnique({
+      where: { idPlan: Number(id) } // Asegúrate de que coincida con el nombre de tu clave primaria en el schema
+    });
+
+    if (!plan) {
+      return res.status(404).json({ error: 'Plan no encontrado' });
+    }
+
+    res.status(200).json(plan);
+  } catch (error) {
+    console.log("Error al buscar el plan por ID:", error);
+    res.status(500).json({ error: 'Error al obtener el plan' });
   }
 };
