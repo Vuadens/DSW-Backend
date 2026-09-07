@@ -23,3 +23,23 @@ export const getPlanes = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Error al obtener la lista de planes' });
   }
 };
+
+export const createPlan = async (req: Request, res: Response) => {
+  try {
+    // 1. Extraemos los datos que nos envía el cliente en el "body"
+    const { nombre, tipo, precio } = req.body;
+    // 2. Usamos Prisma para crear un nuevo registro en la tabla "Plan"
+    const nuevoPlan = await prisma.plan.create({        //El await hace que el código espere ahí mismo hasta que MySQL confirme que se guardó.
+      data: {
+        nombre,
+        tipo,
+        precio: Number(precio)
+      }
+    });
+    // 3. Respondemos con un código 201 (que en HTTP significa "Creado exitosamente")
+    res.status(201).json(nuevoPlan);
+  } catch (error) {
+    console.log("Error real de Prisma al crear:", error);
+    res.status(500).json({ error: 'Error al crear el nuevo plan' });
+  }
+};
