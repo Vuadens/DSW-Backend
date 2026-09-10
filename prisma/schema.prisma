@@ -17,3 +17,11 @@ model Plan {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model Actividad {
+  id          Int      @id @default(autoincrement())
+  nombre      String
+  descripcion String?
+  cupoMaximo  Int
+  creadaEn    DateTime @default(now())
+}
