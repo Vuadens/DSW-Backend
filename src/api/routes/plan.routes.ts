@@ -1,11 +1,9 @@
 import { Router } from 'express';
-// Agrego createPlan en esta importación:
-import { getPlanes, createPlan, getPlanById } from '../controllers/plan.controller'; 
-
+import { getPlanes, createPlan, getPlanById, updatePlan } from '../controllers/plan.controller'; 
 const router = Router();
 
-// Cuando llegue una petición GET a la raíz de esta ruta, ejecuta la función getPlanes
 router.get('/', getPlanes);
 router.post('/', createPlan);
-router.get('/:id', getPlanById); // <-- Nueva ruta agregada
+router.get('/:id', getPlanById); 
+router.patch('/:id', updatePlan); 
 export default router;
