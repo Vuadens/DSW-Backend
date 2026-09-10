@@ -37,3 +37,10 @@ export const eliminarPlan = async (id: number) => {
     where: { idPlan: id }
   });
 };
+
+//funcion para validar si existe un plan con el mismo nombre antes de crear uno nuevo
+export const obtenerPlanPorNombre = async (nombre: string) => {
+  return await prisma.plan.findFirst({
+    where: { nombre: nombre }
+  });
+};

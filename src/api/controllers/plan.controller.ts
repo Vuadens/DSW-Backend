@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
 // Importamos todas las funciones del repositorio
-import * as PlanRepository from '../../repositories/plan.repository'; 
+import * as PlanService from '../../services/plan.service'; 
 
 
 //funcion READ
 export const getPlanes = async (peticion: Request, respuesta: Response) => {
   try {
-    const planes = await PlanRepository.obtenerPlanes();
+    const planes = await PlanService.obtenerTodosLosPlanes();
     respuesta.status(200).json(planes);
   } catch (error) {
     console.log("Error real de Prisma:", error);
@@ -19,7 +19,7 @@ export const getPlanes = async (peticion: Request, respuesta: Response) => {
 export const getPlanById = async (peticion: Request, respuesta: Response) => {
   try {
     const { id } = peticion.params;
-    const plan = await PlanRepository.obtenerPlanPorId(Number(id));
+    const plan = await PlanService.obtenerPlanPorId(Number(id));
 
     if (!plan) return respuesta.status(404).json({ error: 'Plan no encontrado' });
     
@@ -44,7 +44,7 @@ export const createPlan = async (peticion: Request, respuesta: Response) => {
         duracionMeses: duracionMeses !== undefined ? Number(duracionMeses) : undefined,
         activo: activo !== undefined ? Boolean(activo) : undefined
     };
-    const nuevoPlan = await PlanRepository.crearPlan(data);
+    const nuevoPlan = await PlanService.crearNuevoPlan(data);
     respuesta.status(201).json(nuevoPlan);
   } catch (error) {
     console.log("Error real de Prisma al crear:", error);
@@ -67,7 +67,7 @@ export const updatePlan = async (peticion: Request, respuesta: Response) => {
         ...(duracionMeses && { duracionMeses }),
         ...(activo !== undefined && { activo }),
     };
-    const planActualizado = await PlanRepository.actualizarPlan(Number(id), data);
+    const planActualizado = await PlanService.actualizarPlan(Number(id), data);
     respuesta.status(200).json(planActualizado);
   } catch (error) {
     console.log("Error al actualizar el plan:", error);
@@ -79,7 +79,7 @@ export const updatePlan = async (peticion: Request, respuesta: Response) => {
 export const deletePlan = async (peticion: Request, respuesta: Response) => {
   try {
     const { id } = peticion.params;
-    await PlanRepository.eliminarPlan(Number(id));
+    await PlanService.eliminarPlan(Number(id));
     respuesta.status(200).json({ message: 'Plan eliminado correctamente' });
   } catch (error) {
     console.log("Error al eliminar el plan:", error);
