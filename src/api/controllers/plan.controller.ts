@@ -1,13 +1,12 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';      //funciona como los import de phyton, trae herramientas de express
 
-// Instanciamos Prisma para poder hablar con la base de datos
-const prisma = new PrismaClient(); 
+// Traemos la instancia de PrismaClient desde el archivo de configuración
+export const prisma = new PrismaClient();
 
-// Exportamos la función para poder usarla en las rutas
-export const getPlanes = async (req: Request, res: Response) => {
-    //req (Request / Petición): Tiene toda la info de quien te llama (parámetros, datos ocultos, IPs).
-    //res (Response / Respuesta): Es lo que le vas a devolver a quien te llama (código de error, datos, etc).
+// declaramos el metodo get planes como exportable para que cualquier parte de la app lo pueda importar
+export const getPlanes = async (peticion: Request, respuesta: Response) => {
+
   try {
     // await hace que el código "espere" hasta que MySQL devuelva los datos
     const planes = await prisma.plan.findMany({
@@ -15,19 +14,19 @@ export const getPlanes = async (req: Request, res: Response) => {
     });
     
     // Si sale bien, respondemos con código HTTP 200 (OK) y mandamos la lista en JSON
-    res.status(200).json(planes);
+    respuesta.status(200).json(planes);
 
   } catch (error) {
     console.log("Error real de Prisma:", error);
     // Esto es el equivalente a un try/except en Python. Si MySQL falla, no se cae el servidor.
-    res.status(500).json({ error: 'Error al obtener la lista de planes' });
+    respuesta.status(500).json({ error: 'Error al obtener la lista de planes' });
   }
 };
 
-export const createPlan = async (req: Request, res: Response) => {
+export const createPlan = async (peticion: Request, respuesta: Response) => {
   try {
     // 1. Extraemos los datos que nos envía el cliente en el "body"
-    const { nombre, tipo, precio, descripcion, duracionMeses, activo } = req.body;
+    const { nombre, tipo, precio, descripcion, duracionMeses, activo } = peticion.body;
     // 2. Usamos Prisma para crear un nuevo registro en la tabla "Plan"
     const nuevoPlan = await prisma.plan.create({        //El await hace que el código espere ahí mismo hasta que MySQL confirme que se guardó.
       data: {
@@ -40,10 +39,10 @@ export const createPlan = async (req: Request, res: Response) => {
       }
     });
     // 3. Respondemos con un código 201 (que en HTTP significa "Creado exitosamente")
-    res.status(201).json(nuevoPlan);
+    respuesta.status(201).json(nuevoPlan);
   } catch (error) {
     console.log("Error real de Prisma al crear:", error);
-    res.status(500).json({ error: 'Error al crear el nuevo plan' });
+    respuesta.status(500).json({ error: 'Error al crear el nuevo plan' });
   }
 };
 
