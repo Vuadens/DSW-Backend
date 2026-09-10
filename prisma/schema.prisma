@@ -8,12 +8,13 @@ datasource db {
 }
 
 model Plan {
-  id          Int      @id @default(autoincrement())
-  nombre      String
-  descripcion String?
-  precio      Decimal
-  duracionMeses Int    @default(1)
-  activo      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  idPlan        Int      @id @default(autoincrement())
+  nombre        String
+  tipo          String?  // Premium-Pro-Estandar
+  descripcion   String?
+  precio        Decimal
+  duracionMeses Int?     @default(1)
+  activo        Boolean  @default(true) // Para dar de baja o no el plan
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
