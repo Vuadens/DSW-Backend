@@ -6,4 +6,7 @@ export const createActividadSchema = z.object({
   cupoMaximo: z.number().int().positive(),
 });
 
+export const updateActividadSchema = createActividadSchema.partial();
+
 export type CreateActividadInput = z.infer<typeof createActividadSchema>;
+export type UpdateActividadInput = z.infer<typeof updateActividadSchema>;
