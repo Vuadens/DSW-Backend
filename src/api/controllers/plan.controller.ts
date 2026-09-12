@@ -1,44 +1,50 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';      //funciona como los import de phyton, trae herramientas de express
+// Importamos todas las funciones del repositorio
+import * as PlanService from '../../services/plan.service'; 
 
-// Traemos la instancia de PrismaClient desde el archivo de configuración
-export const prisma = new PrismaClient();
 
-// declaramos el metodo get planes como exportable para que cualquier parte de la app lo pueda importar
+//funcion READ
 export const getPlanes = async (peticion: Request, respuesta: Response) => {
-
   try {
-    // await hace que el código "espere" hasta que MySQL devuelva los datos
-    const planes = await prisma.plan.findMany({
-      where: { activo: true } // Prisma se encarga de traducir esto a la consulta SQL: SELECT * FROM Plan WHERE activo = true.
-    });
-    
-    // Si sale bien, respondemos con código HTTP 200 (OK) y mandamos la lista en JSON
+    const planes = await PlanService.obtenerTodosLosPlanes();
     respuesta.status(200).json(planes);
-
   } catch (error) {
     console.log("Error real de Prisma:", error);
-    // Esto es el equivalente a un try/except en Python. Si MySQL falla, no se cae el servidor.
     respuesta.status(500).json({ error: 'Error al obtener la lista de planes' });
   }
 };
 
+
+//funcion READ por ID
+export const getPlanById = async (peticion: Request, respuesta: Response) => {
+  try {
+    const { id } = peticion.params;
+    const plan = await PlanService.obtenerPlanPorId(Number(id));
+
+    if (!plan) return respuesta.status(404).json({ error: 'Plan no encontrado' });
+    
+    respuesta.status(200).json(plan);
+  } catch (error) {
+    console.log("Error al buscar el plan por ID:", error);
+    respuesta.status(500).json({ error: 'Error al obtener el plan' });
+  }
+};
+
+
+//funcion CREATE
 export const createPlan = async (peticion: Request, respuesta: Response) => {
   try {
-    // 1. Extraemos los datos que nos envía el cliente en el "body"
     const { nombre, tipo, precio, descripcion, duracionMeses, activo } = peticion.body;
-    // 2. Usamos Prisma para crear un nuevo registro en la tabla "Plan"
-    const nuevoPlan = await prisma.plan.create({        //El await hace que el código espere ahí mismo hasta que MySQL confirme que se guardó.
-      data: {
+
+    const data = {
         nombre,
         tipo,
         precio: Number(precio),
         descripcion,
         duracionMeses: duracionMeses !== undefined ? Number(duracionMeses) : undefined,
         activo: activo !== undefined ? Boolean(activo) : undefined
-      }
-    });
-    // 3. Respondemos con un código 201 (que en HTTP significa "Creado exitosamente")
+    };
+    const nuevoPlan = await PlanService.crearNuevoPlan(data);
     respuesta.status(201).json(nuevoPlan);
   } catch (error) {
     console.log("Error real de Prisma al crear:", error);
@@ -46,21 +52,37 @@ export const createPlan = async (peticion: Request, respuesta: Response) => {
   }
 };
 
-export const getPlanById = async (req: Request, res: Response) => {
+
+//funcion UPDATE
+export const updatePlan = async (peticion: Request, respuesta: Response) => {
   try {
-    const { id } = req.params;
-
-    const plan = await prisma.plan.findUnique({
-      where: { idPlan: Number(id) } // Asegúrate de que coincida con el nombre de tu clave primaria en el schema
-    });
-
-    if (!plan) {
-      return res.status(404).json({ error: 'Plan no encontrado' });
-    }
-
-    res.status(200).json(plan);
+    const { id } = peticion.params;
+    const { nombre, tipo, descripcion, precio, duracionMeses, activo } = peticion.body; //create tiene las validaciones correctas, pero update no, hay que agregarla aca tambien para que no rompa la validacion de los datos
+    
+    const data = {
+        ...(nombre !== undefined && { nombre }),
+        ...(tipo !== undefined && { tipo }),
+        ...(descripcion !== undefined && { descripcion }),
+        ...(precio !== undefined && { precio }),
+        ...(duracionMeses !== undefined && { duracionMeses }), 
+        ...(activo !== undefined && { activo }),
+    };
+    const planActualizado = await PlanService.actualizarPlan(Number(id), data);
+    respuesta.status(200).json(planActualizado);
   } catch (error) {
-    console.log("Error al buscar el plan por ID:", error);
-    res.status(500).json({ error: 'Error al obtener el plan' });
+    console.log("Error al actualizar el plan:", error);
+    respuesta.status(500).json({ error: 'Error al actualizar el plan' });
+  }
+};
+
+//funcion DELETE
+export const deletePlan = async (peticion: Request, respuesta: Response) => {
+  try {
+    const { id } = peticion.params;
+    await PlanService.eliminarPlan(Number(id));
+    respuesta.status(200).json({ message: 'Plan eliminado correctamente' });
+  } catch (error) {
+    console.log("Error al eliminar el plan:", error);
+    respuesta.status(500).json({ error: 'Error al eliminar el plan' });
   }
 };
