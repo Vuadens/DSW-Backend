@@ -1,6 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-
-export const prisma = new PrismaClient();
+import { prisma } from '../config/prisma';
 
 export const obtenerProfesores = async () => {
   return await prisma.profesor.findMany();
