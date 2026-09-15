@@ -59,7 +59,7 @@ export const actividadController = {
 
     try {
       await actividadService.remove(id);
-      res.status(204).send();
+      res.status(200).json({ message: 'Actividad eliminada correctamente' });
     } catch (err) {
       next(err);
     }
