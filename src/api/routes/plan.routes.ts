@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { getPlanes, createPlan, getPlanById, updatePlan, deletePlan } from '../controllers/plan.controller'; 
 import { validate } from '../middlewares/validate.middleware'; // Usamos el middleware del equipo
-import { planSchema } from '../../schemas/plan.schema';
+import { planSchema } from '../../services/schemas/plan.schema';
 const router = Router();
 
 router.get('/', getPlanes);

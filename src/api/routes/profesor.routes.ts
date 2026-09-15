@@ -7,7 +7,7 @@ import {
 	deleteProfesor
 } from '../controllers/profesor.controller';
 import { validate, validateParams } from '../middlewares/validate.middleware';
-import { profesorIdSchema, profesorSchema } from '../../schemas/profesor.schema';
+import { profesorIdSchema, profesorSchema } from '../../services/schemas/profesor.schema';
 
 const router = Router();
 
