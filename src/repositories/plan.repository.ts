@@ -1,8 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 
 // Centralizamos la conexión a la base de datos aquí
-export const prisma = new PrismaClient();
-
+//export const prisma = new PrismaClient(); declarar en el config/prisma.ts e importar desde ahí siempre, en vez de declarar en cada repositorio
+import { prisma } from '../config/prisma'; // Importamos la instancia de Prisma desde el archivo de configuración :)
 //método GET para obtener todos los planes activos
 export const obtenerPlanes = async () => {
   return await prisma.plan.findMany({
