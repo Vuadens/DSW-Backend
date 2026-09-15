@@ -9,4 +9,5 @@ router.post('/', validate(planSchema), createPlan);
 router.get('/:id', getPlanById); 
 router.patch('/:id', validate(planSchema.partial()), updatePlan);
 router.delete('/:id', deletePlan);
+router.put('/:id', validate(planSchema), updatePlan); // Usamos el middleware del equipo
 export default router;

@@ -57,14 +57,14 @@ export const createPlan = async (peticion: Request, respuesta: Response) => {
 export const updatePlan = async (peticion: Request, respuesta: Response) => {
   try {
     const { id } = peticion.params;
-    const { nombre, tipo, descripcion, precio, duracionMeses, activo } = peticion.body; //create tiene las validaciones correctas, pero update no, hay que agregarla aca tambien para que no rompa la validacion de los datos
+    const { nombre, tipo, descripcion, precio, duracionMeses, activo } = peticion.body;
     
     const data = {
-        ...(nombre !== undefined && { nombre }),
+        ...(nombre && { nombre }),
         ...(tipo !== undefined && { tipo }),
         ...(descripcion !== undefined && { descripcion }),
-        ...(precio !== undefined && { precio }),
-        ...(duracionMeses !== undefined && { duracionMeses }), 
+        ...(precio && { precio }),
+        ...(duracionMeses && { duracionMeses }),
         ...(activo !== undefined && { activo }),
     };
     const planActualizado = await PlanService.actualizarPlan(Number(id), data);
