@@ -16,5 +16,5 @@ router.post('/', validate(profesorSchema), createProfesor);
 router.get('/:id', validateParams(profesorIdSchema), getProfesorById);
 router.patch('/:id', validateParams(profesorIdSchema), validate(profesorSchema.partial()), updateProfesor);
 router.delete('/:id', validateParams(profesorIdSchema), deleteProfesor);
-
+router.put('/:id', validateParams(profesorIdSchema), validate(profesorSchema), updateProfesor);
 export default router;
