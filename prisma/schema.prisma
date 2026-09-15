@@ -8,14 +8,34 @@ datasource db {
 }
 
 model Plan {
-  id          Int      @id @default(autoincrement())
-  nombre      String
-  descripcion String?
-  precio      Decimal
-  duracionMeses Int    @default(1)
-  activo      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  idPlan        Int      @id @default(autoincrement())
+  nombre        String
+  tipo          String?
+  descripcion   String?
+  precio        Decimal
+  duracionMeses Int?     @default(1)
+  activo        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Profesor {
+  idProfesor Int @id @default(autoincrement())
+  nombre     String
+  apellido   String
+  cargo      String
+}
+
+model Socio {
+  idSocio    Int      @id @default(autoincrement())
+  DNI        String
+  apellido   String
+  nombre     String
+  email      String
+  telefono   String
+  direccion  String
+  fecha_baja DateTime?
+  fecha_nac  DateTime
 }
 
 model Actividad {
