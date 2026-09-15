@@ -17,3 +17,15 @@ model Plan {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model Socio {
+  idSocio    Int      @id @default(autoincrement())
+  DNI        String
+  apellido   String
+  nombre     String
+  email      String
+  telefono   String
+  direccion  String
+  fecha_baja DateTime?
+  fecha_nac  DateTime
+}
