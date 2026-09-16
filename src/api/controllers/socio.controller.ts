@@ -40,5 +40,5 @@ export async function deleteSocio(req: Request, res: Response) {
 
     await socioService.borrarSocio(id);
 
-    res.status(204).send();
+    res.status(200).json({ message: 'Socio eliminado correctamente' });
 }
