@@ -10,11 +10,11 @@ datasource db {
 model Plan {
   idPlan        Int      @id @default(autoincrement())
   nombre        String
-  tipo          String?  // Premium-Pro-Estandar
+  tipo          String?
   descripcion   String?
   precio        Decimal
   duracionMeses Int?     @default(1)
-  activo        Boolean  @default(true) // Para dar de baja o no el plan
+  activo        Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -36,4 +36,12 @@ model Socio {
   direccion  String
   fecha_baja DateTime?
   fecha_nac  DateTime
+}
+
+model Actividad {
+  id          Int      @id @default(autoincrement())
+  nombre      String
+  descripcion String?
+  cupoMaximo  Int
+  creadaEn    DateTime @default(now())
 }
