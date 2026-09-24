@@ -20,10 +20,11 @@ model Plan {
 }
 
 model Profesor {
-  idProfesor Int @id @default(autoincrement())
+  idProfesor Int     @id @default(autoincrement())
   nombre     String
   apellido   String
   cargo      String
+  clases     Clase[]
 }
 
 model Socio {
@@ -44,4 +45,41 @@ model Actividad {
   descripcion String?
   cupoMaximo  Int
   creadaEn    DateTime @default(now())
+  clases      Clase[]
+}
+
+
+// entidad 'Clase' con su dictado (dia y horario) en una sola tabla buscando 
+//respetar la proposal, veo mejor esta solucion que el actual MD, habria que actualizarlo.
+
+model Clase {
+  idClase     Int       @id @default(autoincrement())
+  diaSemana   DiaSemana
+  horaDesde   String    @db.VarChar(5) // "HH:mm"
+  horaHasta   String    @db.VarChar(5) // "HH:mm"
+  cupo        Int
+
+  idActividad Int
+  actividad   Actividad @relation(fields: [idActividad], references: [id])
+
+  idProfesor  Int
+  profesor    Profesor  @relation(fields: [idProfesor], references: [idProfesor])
+
+  @@index([idActividad])
+  @@index([idProfesor])
+  @@index([diaSemana])
+}
+
+// Justificacion de por qué es un "crud dependiente":
+// Depende de Actividad (que se dicta en la clase) y de Profesor (quien lo dicta).
+
+//nuevo tipo de objeto para poder fusionar clase con dictado
+enum DiaSemana {
+  LUNES
+  MARTES
+  MIERCOLES
+  JUEVES
+  VIERNES
+  SABADO
+  DOMINGO
 }
