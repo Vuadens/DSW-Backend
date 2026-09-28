@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql" 
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -17,17 +17,19 @@ model Plan {
   activo        Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+
+  socios Socio[]
 }
 
 model Profesor {
-  idProfesor Int @id @default(autoincrement())
+  idProfesor Int    @id @default(autoincrement())
   nombre     String
   apellido   String
   cargo      String
 }
 
 model Socio {
-  idSocio    Int      @id @default(autoincrement())
+  idSocio    Int       @id @default(autoincrement())
   DNI        String
   apellido   String
   nombre     String
@@ -36,6 +38,10 @@ model Socio {
   direccion  String
   fecha_baja DateTime?
   fecha_nac  DateTime
+
+  planId Int
+  plan   Plan    @relation(fields: [planId], references: [idPlan])
+  cuotas Cuota[]
 }
 
 model Actividad {
@@ -44,4 +50,14 @@ model Actividad {
   descripcion String?
   cupoMaximo  Int
   creadaEn    DateTime @default(now())
+}
+
+model Cuota {
+  idCuota   Int       @id @default(autoincrement())
+  mesAnio   DateTime
+  fechaPago DateTime?
+  valor     Decimal
+
+  socioId Int
+  socio   Socio @relation(fields: [socioId], references: [idSocio])
 }
