@@ -37,6 +37,7 @@ model Socio {
   direccion  String
   fecha_baja DateTime?
   fecha_nac  DateTime
+  inscripciones Inscripcion[]
 }
 
 model Actividad {
@@ -65,6 +66,8 @@ model Clase {
   idProfesor  Int
   profesor    Profesor  @relation(fields: [idProfesor], references: [idProfesor])
 
+  inscripciones Inscripcion[]
+
   @@index([idActividad])
   @@index([idProfesor])
   @@index([diaSemana])
@@ -82,4 +85,23 @@ enum DiaSemana {
   VIERNES
   SABADO
   DOMINGO
+}
+
+model Inscripcion {
+  idInscripcion    Int       @id @default(autoincrement())
+  fechaInscripcion DateTime  @default(now())
+  activo           Boolean  @default(true)
+
+  // Relación con Socio
+  idSocio          Int
+  socio            Socio     @relation(fields: [idSocio], references: [idSocio])
+
+  // Relación con Clase
+  idClase          Int
+  clase            Clase     @relation(fields: [idClase], references: [idClase])
+
+  // Un socio no debería inscribirse dos veces a la misma clase
+  @@unique([idSocio, idClase])
+  @@index([idSocio])
+  @@index([idClase])
 }
