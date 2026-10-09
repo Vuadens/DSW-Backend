@@ -20,10 +20,11 @@ model Plan {
 }
 
 model Profesor {
-  idProfesor Int @id @default(autoincrement())
+  idProfesor Int     @id @default(autoincrement())
   nombre     String
   apellido   String
   cargo      String
+  clases     Clase[]
 }
 
 model Socio {
@@ -36,6 +37,7 @@ model Socio {
   direccion  String
   fecha_baja DateTime?
   fecha_nac  DateTime
+  inscripciones Inscripcion[]
 }
 
 model Actividad {
@@ -44,4 +46,62 @@ model Actividad {
   descripcion String?
   cupoMaximo  Int
   creadaEn    DateTime @default(now())
+  clases      Clase[]
+}
+
+
+// entidad 'Clase' con su dictado (dia y horario) en una sola tabla buscando 
+//respetar la proposal, veo mejor esta solucion que el actual MD, habria que actualizarlo.
+
+model Clase {
+  idClase     Int       @id @default(autoincrement())
+  diaSemana   DiaSemana
+  horaDesde   String    @db.VarChar(5) // "HH:mm"
+  horaHasta   String    @db.VarChar(5) // "HH:mm"
+  cupo        Int
+
+  idActividad Int
+  actividad   Actividad @relation(fields: [idActividad], references: [id])
+
+  idProfesor  Int
+  profesor    Profesor  @relation(fields: [idProfesor], references: [idProfesor])
+
+  inscripciones Inscripcion[]
+
+  @@index([idActividad])
+  @@index([idProfesor])
+  @@index([diaSemana])
+}
+
+// Justificacion de por qué es un "crud dependiente":
+// Depende de Actividad (que se dicta en la clase) y de Profesor (quien lo dicta).
+
+//nuevo tipo de objeto para poder fusionar clase con dictado
+enum DiaSemana {
+  LUNES
+  MARTES
+  MIERCOLES
+  JUEVES
+  VIERNES
+  SABADO
+  DOMINGO
+}
+
+model Inscripcion {
+  idInscripcion    Int       @id @default(autoincrement())
+  fechaInscripcion DateTime  @default(now())
+  activo           Boolean  @default(true)
+
+  // Relación con Socio
+  idSocio          Int
+  socio            Socio     @relation(fields: [idSocio], references: [idSocio])
+
+  // Relación con Clase
+  idClase          Int
+  clase            Clase     @relation(fields: [idClase], references: [idClase])
+
+  // Un socio no debería inscribirse dos veces a la misma clase
+  @@unique([idSocio, idClase])
+  @@index([idSocio])
+  @@index([idClase])
 }

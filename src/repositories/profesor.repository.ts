@@ -37,3 +37,9 @@ export const eliminarProfesor = async (id: number) => {
     where: { idProfesor: id }
   });
 };
+
+export const contarClasesAsignadas = async (idProfesor: number): Promise<number> => {
+  return await prisma.clase.count({
+    where: { idProfesor: idProfesor }
+  });
+};
