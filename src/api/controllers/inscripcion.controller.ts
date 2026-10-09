@@ -38,7 +38,7 @@ export const inscripcionController = {
     }
   },
 
-  // Bbaja logica
+  // Baja lógica
   cancelar: async (req: Request, res: Response) => {
     try {
       const id = Number(req.params.id);

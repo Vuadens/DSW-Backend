@@ -7,7 +7,7 @@ import {
 	deleteClase
 } from '../controllers/clase.controller';
 import { validate, validateParams, validateQuery } from '../middlewares/validate.middleware';
-import { claseFiltrosSchema, claseIdSchema, claseSchema } from '../../services/schemas/clase.schema';
+import { claseFiltrosSchema, claseIdSchema, claseSchema } from '../../schemas/clase.schema';
 
 const router = Router();
 

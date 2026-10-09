@@ -1,5 +1,5 @@
 import { prisma } from '../config/prisma';
-import type { ClaseFiltros, ClaseInput } from '../services/schemas/clase.schema';
+import type { ClaseFiltros, ClaseInput } from '../schemas/clase.schema';
 
 // Para que el frontend tenga el nombre de la actividad y del profesor sin pedidos extra.
 const incluir = { actividad: true, profesor: true } as const;

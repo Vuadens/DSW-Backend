@@ -2,7 +2,7 @@ import * as ClaseRepository from '../repositories/clase.repository';
 import * as ProfesorRepository from '../repositories/profesor.repository';
 import * as ActividadRepository from '../repositories/actividad.repository';
 import { HttpError } from '../utils/http-error';
-import type { ClaseFiltros, ClaseInput } from './schemas/clase.schema';
+import type { ClaseFiltros, ClaseInput } from '../schemas/clase.schema';
 
 export type CrearClaseData = ClaseInput;
 export type ActualizarClaseData = Partial<ClaseInput>;

@@ -2,19 +2,12 @@ import { prisma } from '../config/prisma';
 import { CreateInscripcionInput } from '../schemas/inscripcion.schema';
 
 export const inscripcionRepository = {
-  // 1. Obtener todas las inscripciones activas
+  // 1. Obtener todas las inscripciones activas con sus relaciones
   findAll: () =>
     prisma.inscripcion.findMany({
       where: { activo: true },
       include: {
-        socio: {
-          select: {
-            idSocio: true,
-            nombre: true,
-            apellido: true,
-            DNI: true,
-          },
-        },
+        socio: true,
         clase: {
           include: {
             actividad: {
@@ -22,22 +15,32 @@ export const inscripcionRepository = {
                 nombre: true,
               },
             },
+            profesor: true,
           },
         },
       },
     }),
 
-  // 2. Buscar inscripción por su ID
+  // 2. Buscar inscripción por su ID con sus relaciones
   findById: (idInscripcion: number) =>
     prisma.inscripcion.findUnique({
       where: { idInscripcion },
       include: {
         socio: true,
-        clase: true,
+        clase: {
+          include: {
+            actividad: {
+              select: {
+                nombre: true,
+              },
+            },
+            profesor: true,
+          },
+        },
       },
     }),
 
-  // 3. Buscar si el socio ya tiene una inscripción activa en la clase
+  // 3. Buscar si el socio ya tiene una inscripción activa en la clase (para evitar duplicados)
   findBySocioYClase: (idSocio: number, idClase: number) =>
     prisma.inscripcion.findFirst({
       where: {
@@ -47,7 +50,7 @@ export const inscripcionRepository = {
       },
     }),
 
-  // 4. Contar cupos ocupados (inscripciones activas)
+  // 4. Contar cupos ocupados activos en la clase
   countActivasByClase: (idClase: number) =>
     prisma.inscripcion.count({
       where: {
@@ -62,7 +65,7 @@ export const inscripcionRepository = {
       data,
     }),
 
-  // 6. Cancelar inscripción (baja lógica a false)
+  // 6. Cancelar inscripción (baja lógica)
   cancelar: (idInscripcion: number) =>
     prisma.inscripcion.update({
       where: { idInscripcion },

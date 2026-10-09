@@ -32,5 +32,12 @@ export const actualizarProfesor = async (id: number, data: ActualizarProfesorDat
 
 export const eliminarProfesor = async (id: number) => {
   await obtenerProfesorPorId(id);
+  const cantidadClases = await ProfesorRepository.contarClasesAsignadas(id);
+  if (cantidadClases > 0) {
+    throw new HttpError(
+      400,
+      `No se puede eliminar el profesor porque tiene ${cantidadClases} clase(s) asignada(s)`
+    );
+  }
   return ProfesorRepository.eliminarProfesor(id);
 };
