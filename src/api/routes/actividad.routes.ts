@@ -8,5 +8,5 @@ export const actividadRouter = Router();
 actividadRouter.get('/', actividadController.getAll);
 actividadRouter.get('/:id', actividadController.getById);
 actividadRouter.post('/', validate(createActividadSchema), actividadController.create);
-actividadRouter.put('/:id', validate(updateActividadSchema), actividadController.update);
+actividadRouter.patch('/:id', validate(updateActividadSchema), actividadController.update);
 actividadRouter.delete('/:id', actividadController.remove);

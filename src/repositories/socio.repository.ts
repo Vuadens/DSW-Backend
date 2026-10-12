@@ -55,3 +55,15 @@ export async function borrar(id: number) {
         }
     });
 }
+
+export async function desactivarInscripcionesPorSocio(idSocio: number) {
+  return await prisma.inscripcion.updateMany({
+    where: {
+      idSocio: idSocio,
+      activo: true,
+    },
+    data: {
+      activo: false,
+    },
+  });
+}
