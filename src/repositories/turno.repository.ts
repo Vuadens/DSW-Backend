@@ -75,4 +75,24 @@ export const turnoRepository = {
     prisma.turno.delete({
       where: { idTurno },
     }),
+    // Obtener la lista de profesores asignados a un turno
+obtenerProfesoresDeTurno: (idTurno: number) =>
+  prisma.turno.findUnique({
+    where: { idTurno },
+    select: {
+      idTurno: true,
+      nombre: true,
+      diaSemana: true,
+      horaDesde: true,
+      horaHasta: true,
+      profesores: {
+        select: {
+          idProfesor: true,
+          nombre: true,
+          apellido: true,
+          cargo: true,
+        },
+      },
+    },
+  }),
 };

@@ -82,4 +82,12 @@ export const turnoService = {
     }
     return await turnoRepository.remove(idTurno);
   },
+
+  obtenerProfesoresDeTurno: async (idTurno: number) => {
+  const turno = await turnoRepository.obtenerProfesoresDeTurno(idTurno);
+  if (!turno) {
+    throw new HttpError(404, 'Turno no encontrado');
+  }
+  return turno;
+},
 };

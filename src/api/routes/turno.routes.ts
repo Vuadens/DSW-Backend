@@ -15,9 +15,7 @@ router.post('/', validate(createTurnoSchema), turnoController.create);
 router.patch('/:id', validate(updateTurnoSchema), turnoController.update);
 router.patch('/:id/cancelar', turnoController.cancelar);
 router.delete('/:id', turnoController.remove);
-
-// Asignar / Desasignar profesor a un turno
-router.post('/:id/profesores', validate(asignarProfesorSchema), turnoController.asignarProfesor);
-router.delete('/:id/profesores/:idProfesor', turnoController.desasignarProfesor);
-
+router.post('/:id/profesores', validate(asignarProfesorSchema), turnoController.asignarProfesor);   // Asignar profesor a un turno
+router.delete('/:id/profesores/:idProfesor', turnoController.desasignarProfesor);   //Desasignar profesor a un turno
+router.get('/:id/profesores', turnoController.obtenerProfesoresDeTurno);    // Obtener profesores de un turno
 export default router;
