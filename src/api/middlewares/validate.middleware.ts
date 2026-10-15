@@ -19,3 +19,14 @@ export const validateParams = (schema: ZodSchema) => (req: Request, res: Respons
   }
   next();
 };
+
+// valida los query params, osea los filtros opcionales:(?dia=lunes&idProfesor=3). Si son validos, los reemplaza
+// por la version normalizada (mayusculas, numeros ya convertidos,etc) para evitar errores.
+export const validateQuery = (schema: ZodSchema) => (req: Request, res: Response, next: NextFunction) => {
+  const result = schema.safeParse(req.query);
+  if (!result.success) {
+    return res.status(400).json({ error: 'Filtros inválidos', details: result.error.flatten() });
+  }
+  req.query = result.data as any;
+  next();
+};
