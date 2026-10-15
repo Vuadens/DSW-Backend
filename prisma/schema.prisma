@@ -24,7 +24,11 @@ model Profesor {
   nombre     String
   apellido   String
   cargo      String
+  supervisorId Int?
+  supervisor Profesor? @relation("Supervision", fields: [supervisorId], references: [idProfesor])
+  supervisados Profesor[] @relation("Supervision")
   clases     Clase[]
+  usuario    Usuario?
 }
 
 model Socio {
@@ -38,6 +42,7 @@ model Socio {
   fecha_baja DateTime?
   fecha_nac  DateTime
   inscripciones Inscripcion[]
+  usuario      Usuario?
 }
 
 model Actividad {
@@ -104,4 +109,24 @@ model Inscripcion {
   @@unique([idSocio, idClase])
   @@index([idSocio])
   @@index([idClase])
+}
+
+enum Rol {
+  ADMINISTRADOR
+  PROFESOR
+  SOCIO
+}
+
+model Usuario {
+  idUsuario   Int      @id @default(autoincrement())
+  usuario     String   @unique
+  passwordHash String
+  rol         Rol
+  activo      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  socioId     Int?     @unique
+  socio       Socio?   @relation(fields: [socioId], references: [idSocio])
+  profesorId  Int?     @unique
+  profesor    Profesor? @relation(fields: [profesorId], references: [idProfesor])
 }

@@ -1,4 +1,6 @@
-import { Router } from "express";
+import {Router} from "express";
+import {authorize} from '../middlewares/auth.middleware';
+import {Rol} from '@prisma/client';
 import {
     getSocios,
     getSocioById,
@@ -9,8 +11,8 @@ import {
 
 export const socioRouter = Router();
 
-socioRouter.get("/", getSocios);
-socioRouter.get("/:id", getSocioById);
-socioRouter.post("/", createSocio);
-socioRouter.put("/:id", updateSocio);
-socioRouter.delete("/:id", deleteSocio);
+socioRouter.get("/", authorize(Rol.ADMINISTRADOR, Rol.PROFESOR), getSocios);
+socioRouter.get("/:id", authorize(Rol.ADMINISTRADOR, Rol.PROFESOR, Rol.SOCIO), getSocioById);
+socioRouter.post("/", authorize(Rol.ADMINISTRADOR, Rol.PROFESOR), createSocio);
+socioRouter.patch("/:id", authorize(Rol.ADMINISTRADOR, Rol.PROFESOR, Rol.SOCIO), updateSocio);
+socioRouter.delete("/:id", authorize(Rol.ADMINISTRADOR, Rol.PROFESOR), deleteSocio);
