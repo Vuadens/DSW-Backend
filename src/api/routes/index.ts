@@ -6,6 +6,7 @@ import { socioRouter } from "./socio.routes";
 import claseRouter from './clase.routes';
 import inscripcionRouter from './inscripcion.routes';
 import turnoRouter from './turno.routes';
+import maquinaRouter from './maquina.routes';
 
 export const apiRouter = Router();
 apiRouter.get('/health', (_req, res) => res.json({ status: 'ok' }));
@@ -16,3 +17,4 @@ apiRouter.use('/actividades', actividadRouter);
 apiRouter.use('/clases', claseRouter);
 apiRouter.use('/inscripciones', inscripcionRouter);
 apiRouter.use('/turnos', turnoRouter);
+apiRouter.use('/maquinas', maquinaRouter);

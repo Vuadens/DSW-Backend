@@ -68,6 +68,7 @@ model Clase {
   profesor      Profesor      @relation(fields: [idProfesor], references: [idProfesor])
 
   inscripciones Inscripcion[]
+  maquinas      Maquina[]
 
   @@index([idActividad])
   @@index([idProfesor])
@@ -111,4 +112,21 @@ enum DiaSemana {
   VIERNES
   SABADO
   DOMINGO
+}
+
+model Maquina {
+  idMaquina   Int            @id @default(autoincrement())
+  nombre      String
+  tipo        String
+  descripcion String?
+  estado      EstadoMaquina  @default(DISPONIBLE)
+
+  // Relación N:M con Clase
+  clases      Clase[]
+}
+
+enum EstadoMaquina {
+  DISPONIBLE
+  REPARACION
+  INHABILITADA
 }
