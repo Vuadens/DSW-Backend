@@ -3,7 +3,7 @@ import * as ProfesorService from '../../services/profesor.service';
 
 export const getProfesores = async (_peticion: Request, respuesta: Response, next: NextFunction) => {
 	try {
-		const profesores = await ProfesorService.obtenerProfesores();
+		const profesores = await ProfesorService.obtenerProfesores(_peticion.user!);
 		respuesta.status(200).json(profesores);
 	} catch (error) {
 		next(error);
@@ -13,7 +13,7 @@ export const getProfesores = async (_peticion: Request, respuesta: Response, nex
 export const getProfesorById = async (peticion: Request, respuesta: Response, next: NextFunction) => {
 	try {
 		const { id } = peticion.params;
-		const profesor = await ProfesorService.obtenerProfesorPorId(Number(id));
+		const profesor = await ProfesorService.obtenerProfesorPorId(Number(id), peticion.user);
 		respuesta.status(200).json(profesor);
 	} catch (error) {
 		next(error);
@@ -32,7 +32,7 @@ export const createProfesor = async (peticion: Request, respuesta: Response, nex
 export const updateProfesor = async (peticion: Request, respuesta: Response, next: NextFunction) => {
 	try {
 		const { id } = peticion.params;
-		const profesorActualizado = await ProfesorService.actualizarProfesor(Number(id), peticion.body);
+		const profesorActualizado = await ProfesorService.actualizarProfesor(Number(id), peticion.body, peticion.user!);
 		respuesta.status(200).json(profesorActualizado);
 	} catch (error) {
 		next(error);
