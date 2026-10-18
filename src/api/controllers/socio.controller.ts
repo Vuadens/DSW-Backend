@@ -1,8 +1,16 @@
 import { Request, Response } from "express";
 import * as socioService from "../../services/socio.service";
 
-export async function getSocios(_req: Request, res: Response) {
-    const socios = await socioService.getAllSocios();
+export async function getSocios(req: Request, res: Response) {
+    const planId = req.query.planId ? Number(req.query.planId) : undefined;
+
+    if (req.query.planId && isNaN(planId!)) {
+        return res.status(400).json({ error: "El planId debe ser un número" });
+    }
+
+    const socios = planId
+        ? await socioService.getSociosByPlan(planId)
+        : await socioService.getAllSocios();
 
     res.json(socios);
 }
@@ -10,7 +18,11 @@ export async function getSocios(_req: Request, res: Response) {
 export async function getSocioById(req: Request, res: Response) {
     const id = Number(req.params.id);
 
-    const socio = await socioService.getSocioById(id);
+    if (isNaN(id)) {
+        return res.status(400).json({ error: "El id debe ser un número" });
+    }
+
+    const socio = await socioService.getSocioDetalle(id);
 
     if (!socio) {
         return res.status(404).json({

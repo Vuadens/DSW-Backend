@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql" 
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -17,10 +17,12 @@ model Plan {
   activo        Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+
+  socios Socio[]
 }
 
 model Profesor {
-  idProfesor Int     @id @default(autoincrement())
+  idProfesor Int    @id @default(autoincrement())
   nombre     String
   apellido   String
   cargo      String
@@ -28,7 +30,7 @@ model Profesor {
 }
 
 model Socio {
-  idSocio    Int      @id @default(autoincrement())
+  idSocio    Int       @id @default(autoincrement())
   DNI        String
   apellido   String
   nombre     String
@@ -37,6 +39,10 @@ model Socio {
   direccion  String
   fecha_baja DateTime?
   fecha_nac  DateTime
+
+  planId Int
+  plan   Plan    @relation(fields: [planId], references: [idPlan])
+  cuotas Cuota[]
   inscripciones Inscripcion[]
 }
 
@@ -50,7 +56,7 @@ model Actividad {
 }
 
 
-// entidad 'Clase' con su dictado (dia y horario) en una sola tabla buscando 
+// entidad 'Clase' con su dictado (dia y horario) en una sola tabla buscando
 //respetar la proposal, veo mejor esta solucion que el actual MD, habria que actualizarlo.
 
 model Clase {
@@ -104,4 +110,14 @@ model Inscripcion {
   @@unique([idSocio, idClase])
   @@index([idSocio])
   @@index([idClase])
+}
+
+model Cuota {
+  idCuota   Int       @id @default(autoincrement())
+  mesAnio   DateTime
+  fechaPago DateTime?
+  valor     Decimal
+
+  socioId Int
+  socio   Socio @relation(fields: [socioId], references: [idSocio])
 }

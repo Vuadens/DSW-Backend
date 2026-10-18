@@ -21,6 +21,7 @@ export async function create(data: {
     direccion: string;
     fecha_baja?: Date | null;
     fecha_nac: Date;
+    planId: number;
 }) {
     return await prisma.socio.create({
         data: data
@@ -38,6 +39,7 @@ export async function update(
         direccion: string;
         fecha_baja?: Date | null;
         fecha_nac: Date;
+        planId: number;
     }
 ) {
     return await prisma.socio.update({
@@ -66,4 +68,26 @@ export async function desactivarInscripcionesPorSocio(idSocio: number) {
       activo: false,
     },
   });
+}
+
+export async function findAllByPlan(planId: number) {
+    return await prisma.socio.findMany({
+        where: { planId },
+        select: {
+            idSocio: true,
+            DNI: true,
+            nombre: true,
+            apellido: true,
+        },
+    });
+}
+
+export async function findByIdConDetalle(id: number) {
+    return await prisma.socio.findUnique({
+        where: { idSocio: id },
+        include: {
+            plan: true,
+            cuotas: { orderBy: { mesAnio: 'desc' } },
+        },
+    });
 }
