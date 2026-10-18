@@ -7,6 +7,7 @@ import claseRouter from './clase.routes';
 import inscripcionRouter from './inscripcion.routes';
 import {authRouter} from './auth.routes';
 import {usuarioRouter} from './usuario.routes';
+import {cuotaRouter} from './cuota.routes';
 import {authenticate, authorize} from '../middlewares/auth.middleware';
 import {Rol} from '@prisma/client';
 
@@ -20,3 +21,4 @@ apiRouter.use("/socios", authenticate, socioRouter);
 apiRouter.use('/actividades', authenticate, actividadRouter);
 apiRouter.use('/clases', authenticate, claseRouter);
 apiRouter.use('/inscripciones', authenticate, inscripcionRouter);
+apiRouter.use('/cuotas', authenticate, cuotaRouter);

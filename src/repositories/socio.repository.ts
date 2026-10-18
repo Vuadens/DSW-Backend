@@ -70,7 +70,7 @@ export async function desactivarInscripcionesPorSocio(idSocio: number) {
   });
 }
 
-export async function findAllByPlan(planId: number) {
+export async function findAllByPlan(planId: number, mesActual: Date) {
     return await prisma.socio.findMany({
         where: { planId },
         select: {
@@ -78,6 +78,7 @@ export async function findAllByPlan(planId: number) {
             DNI: true,
             nombre: true,
             apellido: true,
+            cuotas: { where: { mesAnio: mesActual }, select: { idCuota: true } },
         },
     });
 }

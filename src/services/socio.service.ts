@@ -2,6 +2,8 @@ import * as socioRepository from "../repositories/socio.repository";
 import { HttpError } from "../utils/http-error";
 import { Rol } from '@prisma/client';
 import { Actor, esPropietarioSocio } from './authorization.service';
+import { primerDiaDelMesActual } from '../utils/fechas';
+import { estadoDeCuotas } from './cuota.service';
 
 export async function getAllSocios(actor: Actor) {
   if (actor.rol === Rol.SOCIO) {
@@ -70,32 +72,29 @@ export async function borrarSocio(id: number, actor?: Actor) {
 }
 
 export async function getSociosByPlan(planId: number) {
-    return await socioRepository.findAllByPlan(planId);
+    const socios = await socioRepository.findAllByPlan(planId, primerDiaDelMesActual());
+    return socios.map(({ cuotas, ...socio }) => ({
+        ...socio,
+        estadoCuota: cuotas.length > 0 ? 'AL_DIA' : 'ADEUDA',
+    }));
 }
 
-function calcularEstadoCuota(cuotas: { mesAnio: Date; fechaPago: Date | null }[]) {
-    const ahora = new Date();
-    const cuotaDelMes = cuotas.find(
-        (c) => c.mesAnio.getFullYear() === ahora.getFullYear() && c.mesAnio.getMonth() === ahora.getMonth()
-    );
+export async function getSocioDetalle(id: number, actor?: Actor) {
+    if (actor && actor.rol === Rol.SOCIO && !esPropietarioSocio(actor, id)) {
+        throw new HttpError(403, "No puede acceder a este socio");
+    }
 
-    if (!cuotaDelMes) return "Sin cuota generada este mes";
-    return cuotaDelMes.fechaPago ? "Al día" : "Atrasado";
-}
-
-export async function getSocioDetalle(id: number) {
     const socio = await socioRepository.findByIdConDetalle(id);
-    if (!socio) return null;
+    if (!socio) {
+        throw new HttpError(404, "Socio no encontrado");
+    }
+
+    const { cuotas, plan, ...resto } = socio;
 
     return {
-        idSocio: socio.idSocio,
-        DNI: socio.DNI,
-        nombre: socio.nombre,
-        apellido: socio.apellido,
-        email: socio.email,
-        telefono: socio.telefono,
-        direccion: socio.direccion,
-        plan: socio.plan,
-        estadoCuota: calcularEstadoCuota(socio.cuotas),
+        ...resto,
+        plan,
+        cuotas,
+        estadoCuotas: estadoDeCuotas(cuotas),
     };
 }
