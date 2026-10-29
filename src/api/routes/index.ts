@@ -8,6 +8,7 @@ import inscripcionRouter from './inscripcion.routes';
 import {authRouter} from './auth.routes';
 import {usuarioRouter} from './usuario.routes';
 import {cuotaRouter} from './cuota.routes';
+import turnoRouter from './turno.routes';
 import {optionalAuthenticate} from '../middlewares/auth.middleware';
 
 export const apiRouter = Router();
@@ -22,3 +23,4 @@ apiRouter.use("/socios", socioRouter);
 apiRouter.use('/actividades', actividadRouter);
 apiRouter.use('/clases', claseRouter);
 apiRouter.use('/inscripciones', inscripcionRouter);
+apiRouter.use('/turnos', turnoRouter);
