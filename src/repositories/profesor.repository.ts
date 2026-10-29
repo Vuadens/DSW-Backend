@@ -14,7 +14,6 @@ export const crearProfesor = async (data: {
   nombre: string;
   apellido: string;
   cargo: string;
-  supervisorId?: number | null;
 }) => {
   return await prisma.profesor.create({ data });
 };
@@ -25,7 +24,6 @@ export const actualizarProfesor = async (
     nombre: string;
     apellido: string;
     cargo: string;
-    supervisorId: number | null;
   }>
 ) => {
   return await prisma.profesor.update({

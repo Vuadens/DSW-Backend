@@ -26,9 +26,6 @@ model Profesor {
   nombre     String
   apellido   String
   cargo      String
-  supervisorId Int?
-  supervisor Profesor? @relation("Supervision", fields: [supervisorId], references: [idProfesor])
-  supervisados Profesor[] @relation("Supervision")
   clases     Clase[]
   usuario    Usuario?
   turnos     Turno[]
