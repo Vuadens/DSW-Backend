@@ -8,11 +8,14 @@ import inscripcionRouter from './inscripcion.routes';
 import {authRouter} from './auth.routes';
 import {usuarioRouter} from './usuario.routes';
 import {cuotaRouter} from './cuota.routes';
-import {authenticate, authorize} from '../middlewares/auth.middleware';
-import {Rol} from '@prisma/client';
+import {optionalAuthenticate} from '../middlewares/auth.middleware';
 
 export const apiRouter = Router();
 apiRouter.get('/health', (_req, res) => res.json({ status: 'ok' }));
+apiRouter.use(optionalAuthenticate);
+apiRouter.use('/auth', authRouter);
+apiRouter.use('/usuarios', usuarioRouter);
+apiRouter.use('/cuotas', cuotaRouter);
 apiRouter.use('/planes', planRouter);
 apiRouter.use('/profesores', profesorRouter);
 apiRouter.use("/socios", socioRouter);

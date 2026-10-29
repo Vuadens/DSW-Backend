@@ -10,7 +10,7 @@ export async function getSocios(req: Request, res: Response, next: NextFunction)
         }
 
         const socios = planId
-            ? await socioService.getSociosByPlan(planId)
+            ? await socioService.getSociosByPlan(planId, req.user!)
             : await socioService.getAllSocios(req.user!);
 
         res.json(socios);
@@ -34,24 +34,43 @@ export async function getSocioById(req: Request, res: Response, next: NextFuncti
     }
 }
 
-export async function createSocio(req: Request, res: Response) {
-    const socio = await socioService.createSocio(req.body);
-
-    res.status(201).json(socio);
+// Express 4 no captura errores de handlers async: sin try/catch + next(error)
+// una excepcion tumba el proceso completo.
+export async function createSocio(req: Request, res: Response, next: NextFunction) {
+    try {
+        const socio = await socioService.createSocio(req.body);
+        res.status(201).json(socio);
+    } catch (error) {
+        next(error);
+    }
 }
 
-export async function updateSocio(req: Request, res: Response) {
+export async function updateSocio(req: Request, res: Response, next: NextFunction) {
     const id = Number(req.params.id);
 
-    const socio = await socioService.updateSocio(id, req.body);
+    if (isNaN(id)) {
+        return res.status(400).json({ error: "El id debe ser un número" });
+    }
 
-    res.json(socio);
+    try {
+        const socio = await socioService.updateSocio(id, req.body);
+        res.json(socio);
+    } catch (error) {
+        next(error);
+    }
 }
 
-export async function deleteSocio(req: Request, res: Response) {
+export async function deleteSocio(req: Request, res: Response, next: NextFunction) {
     const id = Number(req.params.id);
 
-    await socioService.borrarSocio(id);
+    if (isNaN(id)) {
+        return res.status(400).json({ error: "El id debe ser un número" });
+    }
 
-    res.status(200).json({ message: 'Socio eliminado correctamente' });
+    try {
+        await socioService.borrarSocio(id, req.user);
+        res.status(200).json({ message: 'Socio eliminado correctamente' });
+    } catch (error) {
+        next(error);
+    }
 }

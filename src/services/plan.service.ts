@@ -1,4 +1,5 @@
 import * as PlanRepository from '../repositories/plan.repository';
+import { HttpError } from '../utils/http-error';
 
 // Obtener todos los planes activos
 export const obtenerTodosLosPlanes = async () => {
@@ -15,7 +16,7 @@ export const crearNuevoPlan = async (data: any) => { // si usamos any estariamos
     // Regla 1: Validar nombre único
     const planExistente = await PlanRepository.obtenerPlanPorNombre(data.nombre);
     if (planExistente) {
-        throw new Error("Ya existe un plan con ese nombre exacto"); // tal vez podriamos usar un error personalizado aca para diferenciar error de tipeo de erorr del server/cliente
+        throw new HttpError(409, "Ya existe un plan con ese nombre exacto");
     }
     // Regla 2: Descuento automático del 15% si pagan 12 meses o mas
     let precioCalculado = data.precio;
@@ -37,7 +38,7 @@ export const actualizarPlan = async (id: number, data: any) => { //misma cuestio
         // Validar que el nuevo nombre no exista en otro plan
         const planExistente = await PlanRepository.obtenerPlanPorNombre(data.nombre);
         if (planExistente && planExistente.idPlan !== id) {
-            throw new Error("Ya existe un plan con ese nombre exacto");
+            throw new HttpError(409, "Ya existe un plan con ese nombre exacto");
         }
     }
     //validar si se actualiza el plan a mayor de 12 meses y si el precio es diferente de undefined, aplicar el descuento del 15%

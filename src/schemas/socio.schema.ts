@@ -12,6 +12,10 @@ export const createSocioSchema = z.object({
     invalid_type_error: 'Fecha de nacimiento inválida',
   }),
   fecha_baja: z.coerce.date().nullable().optional(),
+  planId: z.number({
+    required_error: 'El planId es obligatorio',
+    invalid_type_error: 'El planId debe ser un número entero',
+  }).int().positive('El planId debe ser mayor a 0'),
 });
 
 export const updateSocioSchema = createSocioSchema.partial();
