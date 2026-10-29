@@ -18,8 +18,7 @@ export const authService = {
             token: signToken({
                 sub: found.idUsuario,
                 rol: found.rol,
-                socioId: found.socioId ?? undefined,
-                profesorId: found.profesorId ?? undefined,
+                personaId: found.personaId,
             }),
             usuario: {idUsuario: found.idUsuario, usuario: found.usuario, rol: found.rol},
         };

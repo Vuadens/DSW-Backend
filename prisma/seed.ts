@@ -11,8 +11,22 @@ const main = async () => {
 
     const existente = await prisma.usuario.findUnique({where: {usuario}});
     if (!existente) {
+        // Todo usuario se vincula a una persona.
         await prisma.usuario.create({
-            data: {usuario, passwordHash: await hashPassword(password), rol: Rol.ADMINISTRADOR},
+            data: {
+                usuario,
+                passwordHash: await hashPassword(password),
+                rol: Rol.ADMINISTRADOR,
+                persona: {
+                    create: {
+                        dni: process.env.ADMIN_DNI || '00000000',
+                        nombre: usuario,
+                        apellido: '',
+                        telefono: '',
+                        fechaNac: new Date('1900-01-01'),
+                    },
+                },
+            },
         });
     }
 };

@@ -1,15 +1,9 @@
 import { z } from 'zod';
+import { personaSchema } from './persona.schema';
 
-export const createSocioSchema = z.object({
-  DNI: z.string().trim().min(7, 'El DNI debe tener al menos 7 caracteres'),
-  apellido: z.string().trim().min(1, 'El apellido es obligatorio'),
-  nombre: z.string().trim().min(1, 'El nombre es obligatorio'),
-  telefono: z.string().trim().min(6, 'El teléfono debe tener al menos 6 caracteres'),
-  fecha_nac: z.coerce.date({
-    required_error: 'La fecha de nacimiento es obligatoria',
-    invalid_type_error: 'Fecha de nacimiento inválida',
-  }),
-  fecha_baja: z.coerce.date().nullable().optional(),
+export const createSocioSchema = personaSchema.extend({
+  fechaAlta: z.coerce.date().optional(),
+  fechaBaja: z.coerce.date().nullable().optional(),
   planId: z.number({
     required_error: 'El planId es obligatorio',
     invalid_type_error: 'El planId debe ser un número entero',

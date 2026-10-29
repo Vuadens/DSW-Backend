@@ -5,17 +5,15 @@ import {env} from '../config/env';
 export type AuthTokenPayload = {
     id: number;
     rol: Rol;
-    socioId?: number;
-    profesorId?: number;
+    personaId: number;
 };
 
-export const signToken = ({sub, rol, socioId, profesorId}: {
+export const signToken = ({sub, rol, personaId}: {
     sub: number;
     rol: Rol;
-    socioId?: number;
-    profesorId?: number;
+    personaId: number;
 }) =>
-    jwt.sign({rol, socioId, profesorId}, env.jwtSecret, {
+    jwt.sign({rol, personaId}, env.jwtSecret, {
         subject: String(sub),
         expiresIn: env.jwtExpiresIn as SignOptions['expiresIn'],
     });
@@ -33,7 +31,10 @@ export const verifyToken = (token: string): AuthTokenPayload => {
         throw new Error('Token inválido');
     }
 
-    const socioId = typeof payload.socioId === 'number' ? payload.socioId : undefined;
-    const profesorId = typeof payload.profesorId === 'number' ? payload.profesorId : undefined;
-    return {id, rol: payload.rol as Rol, socioId, profesorId};
+    // Los tokens emitidos antes de Persona no traen personaId: hay que volver a loguearse.
+    if (typeof payload.personaId !== 'number') {
+        throw new Error('Token inválido');
+    }
+
+    return {id, rol: payload.rol as Rol, personaId: payload.personaId};
 };
