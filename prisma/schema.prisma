@@ -21,9 +21,9 @@ model Plan {
   socios Socio[]
 }
 
-// Superclase del modelo de dominio. Profesor y Socio la especializan con una
-// tabla por subtipo cuya PK es también FK a Persona (clave primaria
-// compartida): cada persona tiene un único id, idPersona.
+// Superclase del modelo de dominio. Profesor, Socio y Administrador la
+// especializan con una tabla por subtipo cuya PK es también FK a Persona
+// (clave primaria compartida): cada persona tiene un único id, idPersona.
 model Persona {
   idPersona Int      @id @default(autoincrement())
   dni       String   @unique
@@ -32,9 +32,10 @@ model Persona {
   telefono  String
   fechaNac  DateTime
 
-  profesor Profesor?
-  socio    Socio?
-  usuario  Usuario?
+  profesor      Profesor?
+  socio         Socio?
+  administrador Administrador?
+  usuario       Usuario?
 }
 
 model Profesor {
@@ -43,6 +44,11 @@ model Profesor {
   cargo      String
   clases     Clase[]
   turnos     Turno[]
+}
+
+model Administrador {
+  idPersona Int     @id
+  persona   Persona @relation(fields: [idPersona], references: [idPersona], onDelete: Cascade)
 }
 
 

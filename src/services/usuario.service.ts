@@ -15,7 +15,7 @@ const validarPersona = async (personaId: number, rol: Rol, idUsuarioActual?: num
     const cumpleRol = {
         [Rol.SOCIO]: persona.socio !== null,
         [Rol.PROFESOR]: persona.profesor !== null,
-        [Rol.ADMINISTRADOR]: true,
+        [Rol.ADMINISTRADOR]: persona.administrador !== null,
     }[rol];
     if (!cumpleRol) throw new HttpError(400, `La persona no esta registrada como ${rol}`);
 };

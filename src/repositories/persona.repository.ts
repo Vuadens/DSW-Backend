@@ -23,10 +23,10 @@ export const findByDni = (dni: string) =>
 export const findById = (idPersona: number) =>
   prisma.persona.findUnique({
     where: { idPersona },
-    include: { profesor: true, socio: true, usuario: true },
+    include: { profesor: true, socio: true, administrador: true, usuario: true },
   });
 
-// Borra la persona solo si ya no cumple ningún rol (profesor o socio).
+// Borra la persona solo si ya no cumple ningún rol (profesor, socio o administrador).
 // El borrado arrastra a su usuario por el onDelete: Cascade.
 export const eliminarSiNoTieneRoles = (idPersona: number) =>
   prisma.persona.deleteMany({
@@ -34,5 +34,6 @@ export const eliminarSiNoTieneRoles = (idPersona: number) =>
       idPersona,
       profesor: { is: null },
       socio: { is: null },
+      administrador: { is: null },
     },
   });

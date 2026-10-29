@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-// Atributos comunes de Persona, que extienden Profesor y Socio.
+// Atributos comunes de Persona, que extienden Profesor, Socio y Administrador.
 export const personaSchema = z.object({
   dni: z.string().trim().min(7, 'El DNI debe tener al menos 7 caracteres'),
   nombre: z.string().trim().min(1, 'El nombre es obligatorio'),
