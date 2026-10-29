@@ -31,6 +31,22 @@ model Profesor {
   supervisados Profesor[] @relation("Supervision")
   clases     Clase[]
   usuario    Usuario?
+  turnos     Turno[]
+}
+
+// Turno de trabajo del personal (franja horaria de un día), independiente de las
+// clases. Relación muchos a muchos con Profesor: un turno lo cubren varios
+// profesores y un profesor puede cubrir varios turnos.
+model Turno {
+  idTurno    Int        @id @default(autoincrement())
+  nombre     String?
+  diaSemana  DiaSemana
+  horaDesde  String     @db.VarChar(5) // "HH:mm"
+  horaHasta  String     @db.VarChar(5) // "HH:mm"
+  activo     Boolean    @default(true)
+  profesores Profesor[]
+
+  @@index([diaSemana])
 }
 
 model Socio {

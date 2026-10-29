@@ -12,6 +12,14 @@ export async function findById(id: number) {
     });
 }
 
+export async function findByDNI(DNI: string) {
+    return await prisma.socio.findFirst({
+        where: {
+            DNI: DNI
+        }
+    });
+}
+
 export async function create(data: {
     DNI: string;
     apellido: string;

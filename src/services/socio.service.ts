@@ -1,4 +1,5 @@
 import * as socioRepository from "../repositories/socio.repository";
+import * as PlanRepository from "../repositories/plan.repository";
 import { HttpError } from "../utils/http-error";
 import { Rol } from '@prisma/client';
 import { Actor, esPropietarioSocio } from './authorization.service';
@@ -35,8 +36,24 @@ export async function createSocio(data: {
     fecha_nac: Date;
     planId: number;
 }) {
+  await validarDniUnico(data.DNI);
+  await validarPlanExistente(data.planId);
   return await socioRepository.create(data);
 }
+
+const validarDniUnico = async (DNI: string, idSocioActual?: number) => {
+  const existente = await socioRepository.findByDNI(DNI);
+  if (existente && existente.idSocio !== idSocioActual) {
+    throw new HttpError(409, "Ya existe un socio con ese DNI");
+  }
+};
+
+const validarPlanExistente = async (planId: number) => {
+  const plan = await PlanRepository.obtenerPlanPorId(planId);
+  if (!plan) {
+    throw new HttpError(400, "El plan indicado no existe");
+  }
+};
 
 export async function updateSocio(
   id: number,
@@ -54,6 +71,8 @@ export async function updateSocio(
   actor?: Actor
 ) {
   await getSocioById(id);
+  if (data.DNI !== undefined) await validarDniUnico(data.DNI, id);
+  if (data.planId !== undefined) await validarPlanExistente(data.planId);
 
   const socioActualizado = await socioRepository.update(id, data);
 
@@ -71,7 +90,11 @@ export async function borrarSocio(id: number, actor?: Actor) {
     return await socioRepository.borrar(id);
 }
 
-export async function getSociosByPlan(planId: number) {
+export async function getSociosByPlan(planId: number, actor: Actor) {
+    // El listado por plan expone datos de otros socios: un SOCIO no puede verlo.
+    if (actor.rol === Rol.SOCIO) {
+        throw new HttpError(403, "No puede acceder al listado de socios por plan");
+    }
     const socios = await socioRepository.findAllByPlan(planId, primerDiaDelMesActual());
     return socios.map(({ cuotas, ...socio }) => ({
         ...socio,

@@ -1,38 +1,48 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 // Importamos todas las funciones del repositorio
-import * as PlanService from '../../services/plan.service'; 
+import * as PlanService from '../../services/plan.service';
 
+// Los errores se delegan con next(error) al error.middleware, que traduce
+// HttpError y los codigos de Prisma (P2025 -> 404, P2003 -> 409) al status correcto.
+
+const parsearId = (peticion: Request, respuesta: Response) => {
+  const id = Number(peticion.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    respuesta.status(400).json({ error: 'El id debe ser un entero positivo' });
+    return undefined;
+  }
+  return id;
+};
 
 //funcion READ
-export const getPlanes = async (peticion: Request, respuesta: Response) => {
+export const getPlanes = async (peticion: Request, respuesta: Response, next: NextFunction) => {
   try {
     const planes = await PlanService.obtenerTodosLosPlanes();
     respuesta.status(200).json(planes);
   } catch (error) {
-    console.log("Error real de Prisma:", error);
-    respuesta.status(500).json({ error: 'Error al obtener la lista de planes' });
+    next(error);
   }
 };
 
 
 //funcion READ por ID
-export const getPlanById = async (peticion: Request, respuesta: Response) => {
+export const getPlanById = async (peticion: Request, respuesta: Response, next: NextFunction) => {
+  const id = parsearId(peticion, respuesta);
+  if (id === undefined) return;
   try {
-    const { id } = peticion.params;
-    const plan = await PlanService.obtenerPlanPorId(Number(id));
+    const plan = await PlanService.obtenerPlanPorId(id);
 
     if (!plan) return respuesta.status(404).json({ error: 'Plan no encontrado' });
-    
+
     respuesta.status(200).json(plan);
   } catch (error) {
-    console.log("Error al buscar el plan por ID:", error);
-    respuesta.status(500).json({ error: 'Error al obtener el plan' });
+    next(error);
   }
 };
 
 
 //funcion CREATE
-export const createPlan = async (peticion: Request, respuesta: Response) => {
+export const createPlan = async (peticion: Request, respuesta: Response, next: NextFunction) => {
   try {
     const { nombre, tipo, precio, descripcion, duracionMeses, activo } = peticion.body;
 
@@ -47,42 +57,41 @@ export const createPlan = async (peticion: Request, respuesta: Response) => {
     const nuevoPlan = await PlanService.crearNuevoPlan(data);
     respuesta.status(201).json(nuevoPlan);
   } catch (error) {
-    console.log("Error real de Prisma al crear:", error);
-    respuesta.status(500).json({ error: 'Error al crear el nuevo plan' });
+    next(error);
   }
 };
 
 
 //funcion UPDATE
-export const updatePlan = async (peticion: Request, respuesta: Response) => {
+export const updatePlan = async (peticion: Request, respuesta: Response, next: NextFunction) => {
+  const id = parsearId(peticion, respuesta);
+  if (id === undefined) return;
   try {
-    const { id } = peticion.params;
     const { nombre, tipo, descripcion, precio, duracionMeses, activo } = peticion.body;
-    
+
     const data = {
         ...(nombre && { nombre }),
         ...(tipo !== undefined && { tipo }),
         ...(descripcion !== undefined && { descripcion }),
-        ...(precio && { precio }),
+        ...(precio !== undefined && { precio }),
         ...(duracionMeses && { duracionMeses }),
         ...(activo !== undefined && { activo }),
     };
-    const planActualizado = await PlanService.actualizarPlan(Number(id), data);
+    const planActualizado = await PlanService.actualizarPlan(id, data);
     respuesta.status(200).json(planActualizado);
   } catch (error) {
-    console.log("Error al actualizar el plan:", error);
-    respuesta.status(500).json({ error: 'Error al actualizar el plan' });
+    next(error);
   }
 };
 
 //funcion DELETE
-export const deletePlan = async (peticion: Request, respuesta: Response) => {
+export const deletePlan = async (peticion: Request, respuesta: Response, next: NextFunction) => {
+  const id = parsearId(peticion, respuesta);
+  if (id === undefined) return;
   try {
-    const { id } = peticion.params;
-    await PlanService.eliminarPlan(Number(id));
+    await PlanService.eliminarPlan(id);
     respuesta.status(200).json({ message: 'Plan eliminado correctamente' });
   } catch (error) {
-    console.log("Error al eliminar el plan:", error);
-    respuesta.status(500).json({ error: 'Error al eliminar el plan' });
+    next(error);
   }
 };

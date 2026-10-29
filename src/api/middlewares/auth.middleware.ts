@@ -25,7 +25,15 @@ export const authenticate = (req: Request, _res: Response, next: NextFunction) =
     }
 };
 
+// Si viene token lo valida y carga req.user; si no viene, deja pasar (rutas publicas).
+// Las rutas protegidas exigen usuario con authorize().
+export const optionalAuthenticate = (req: Request, res: Response, next: NextFunction) => {
+    if (!req.header('Authorization')) return next();
+    authenticate(req, res, next);
+};
+
 export const authorize = (...roles: Rol[]) => (req: Request, _res: Response, next: NextFunction) => {
-    if (!req.user || !roles.includes(req.user.rol)) return next(new HttpError(403, 'No autorizado'));
+    if (!req.user) return next(new HttpError(401, 'No autenticado'));
+    if (!roles.includes(req.user.rol)) return next(new HttpError(403, 'No autorizado'));
     next();
 };
