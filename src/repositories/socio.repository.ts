@@ -24,9 +24,7 @@ export async function create(data: {
     DNI: string;
     apellido: string;
     nombre: string;
-    email: string;
     telefono: string;
-    direccion: string;
     fecha_baja?: Date | null;
     fecha_nac: Date;
     planId: number;
@@ -42,9 +40,7 @@ export async function update(
         DNI: string;
         apellido: string;
         nombre: string;
-        email: string;
         telefono: string;
-        direccion: string;
         fecha_baja?: Date | null;
         fecha_nac: Date;
         planId: number;

@@ -29,9 +29,7 @@ export async function createSocio(data: {
     DNI: string;
     apellido: string;
     nombre: string;
-    email: string;
     telefono: string;
-    direccion: string;
     fecha_baja?: Date | null;
     fecha_nac: Date;
     planId: number;
@@ -61,9 +59,7 @@ export async function updateSocio(
     DNI: string;
     apellido: string;
     nombre: string;
-    email: string;
     telefono: string;
-    direccion: string;
     fecha_baja?: Date | null;
     fecha_nac: Date;
     planId: number;

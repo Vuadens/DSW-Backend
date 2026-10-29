@@ -51,9 +51,7 @@ model Socio {
   DNI        String
   apellido   String
   nombre     String
-  email      String
   telefono   String
-  direccion  String
   fecha_baja DateTime?
   fecha_nac  DateTime
 
