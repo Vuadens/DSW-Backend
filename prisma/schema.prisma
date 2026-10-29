@@ -20,24 +20,23 @@ model Plan {
 }
 
 model Profesor {
-  idProfesor Int        @id @default(autoincrement())
+  idProfesor Int     @id @default(autoincrement())
   nombre     String
   apellido   String
   cargo      String
   clases     Clase[]
-  turnos     Turno[]
 }
 
 model Socio {
-  idSocio       Int           @id @default(autoincrement())
-  DNI           String
-  apellido      String
-  nombre        String
-  email         String
-  telefono      String
-  direccion     String
-  fecha_baja    DateTime?
-  fecha_nac     DateTime
+  idSocio    Int      @id @default(autoincrement())
+  DNI        String
+  apellido   String
+  nombre     String
+  email      String
+  telefono   String
+  direccion  String
+  fecha_baja DateTime?
+  fecha_nac  DateTime
   inscripciones Inscripcion[]
 }
 
@@ -55,17 +54,17 @@ model Actividad {
 //respetar la proposal, veo mejor esta solucion que el actual MD, habria que actualizarlo.
 
 model Clase {
-  idClase       Int           @id @default(autoincrement())
-  diaSemana     DiaSemana
-  horaDesde     String        @db.VarChar(5)
-  horaHasta     String        @db.VarChar(5)
-  cupo          Int
+  idClase     Int       @id @default(autoincrement())
+  diaSemana   DiaSemana
+  horaDesde   String    @db.VarChar(5) // "HH:mm"
+  horaHasta   String    @db.VarChar(5) // "HH:mm"
+  cupo        Int
 
-  idActividad   Int
-  actividad     Actividad     @relation(fields: [idActividad], references: [id])
+  idActividad Int
+  actividad   Actividad @relation(fields: [idActividad], references: [id])
 
-  idProfesor    Int
-  profesor      Profesor      @relation(fields: [idProfesor], references: [idProfesor])
+  idProfesor  Int
+  profesor    Profesor  @relation(fields: [idProfesor], references: [idProfesor])
 
   inscripciones Inscripcion[]
 
@@ -74,35 +73,10 @@ model Clase {
   @@index([diaSemana])
 }
 
-model Inscripcion {
-  idInscripcion    Int      @id @default(autoincrement())
-  fechaInscripcion DateTime @default(now())
-  activo           Boolean  @default(true)
+// Justificacion de por qué es un "crud dependiente":
+// Depende de Actividad (que se dicta en la clase) y de Profesor (quien lo dicta).
 
-  idSocio          Int
-  socio            Socio    @relation(fields: [idSocio], references: [idSocio])
-
-  idClase          Int
-  clase            Clase    @relation(fields: [idClase], references: [idClase])
-
-  @@unique([idSocio, idClase])
-  @@index([idSocio])
-  @@index([idClase])
-}
-
-model Turno {
-  idTurno     Int        @id @default(autoincrement())
-  nombre      String?    // "Mañana", "Tarde", "Noche"
-  diaSemana   DiaSemana
-  horaDesde   String     @db.VarChar(5) // "HH:mm"
-  horaHasta   String     @db.VarChar(5) // "HH:mm"
-  activo      Boolean    @default(true)
-
-  profesores  Profesor[]
-
-  @@index([diaSemana])
-}
-
+//nuevo tipo de objeto para poder fusionar clase con dictado
 enum DiaSemana {
   LUNES
   MARTES
@@ -111,4 +85,23 @@ enum DiaSemana {
   VIERNES
   SABADO
   DOMINGO
+}
+
+model Inscripcion {
+  idInscripcion    Int       @id @default(autoincrement())
+  fechaInscripcion DateTime  @default(now())
+  activo           Boolean  @default(true)
+
+  // Relación con Socio
+  idSocio          Int
+  socio            Socio     @relation(fields: [idSocio], references: [idSocio])
+
+  // Relación con Clase
+  idClase          Int
+  clase            Clase     @relation(fields: [idClase], references: [idClase])
+
+  // Un socio no debería inscribirse dos veces a la misma clase
+  @@unique([idSocio, idClase])
+  @@index([idSocio])
+  @@index([idClase])
 }
