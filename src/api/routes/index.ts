@@ -1,10 +1,15 @@
-import { Router } from 'express';
-import { actividadRouter } from './actividad.routes';
+import {Router} from 'express';
+import {actividadRouter} from './actividad.routes';
 import planRouter from './plan.routes';
 import profesorRouter from './profesor.routes';
-import { socioRouter } from "./socio.routes";
+import {socioRouter} from "./socio.routes";
 import claseRouter from './clase.routes';
 import inscripcionRouter from './inscripcion.routes';
+import {authRouter} from './auth.routes';
+import {usuarioRouter} from './usuario.routes';
+import {cuotaRouter} from './cuota.routes';
+import {authenticate, authorize} from '../middlewares/auth.middleware';
+import {Rol} from '@prisma/client';
 
 export const apiRouter = Router();
 apiRouter.get('/health', (_req, res) => res.json({ status: 'ok' }));

@@ -1,11 +1,22 @@
 import * as socioRepository from "../repositories/socio.repository";
 import { HttpError } from "../utils/http-error";
+import { Rol } from '@prisma/client';
+import { Actor, esPropietarioSocio } from './authorization.service';
+import { primerDiaDelMesActual } from '../utils/fechas';
+import { estadoDeCuotas } from './cuota.service';
 
-export async function getAllSocios() {
+export async function getAllSocios(actor: Actor) {
+  if (actor.rol === Rol.SOCIO) {
+    if (actor.socioId === undefined) throw new HttpError(403, "No puede acceder a socios");
+    return [await getSocioById(actor.socioId, actor)];
+  }
   return await socioRepository.findAll();
 }
 
-export async function getSocioById(id: number) {
+export async function getSocioById(id: number, actor?: Actor) {
+  if (actor && actor.rol === Rol.SOCIO && !esPropietarioSocio(actor, id)) {
+    throw new HttpError(403, "No puede acceder a este socio");
+  }
   const socio = await socioRepository.findById(id);
   if (!socio) {
     throw new HttpError(404, "Socio no encontrado");
@@ -14,14 +25,15 @@ export async function getSocioById(id: number) {
 }
 
 export async function createSocio(data: {
-  DNI: string;
-  apellido: string;
-  nombre: string;
-  email: string;
-  telefono: string;
-  direccion: string;
-  fecha_baja?: Date | null;
-  fecha_nac: Date;
+    DNI: string;
+    apellido: string;
+    nombre: string;
+    email: string;
+    telefono: string;
+    direccion: string;
+    fecha_baja?: Date | null;
+    fecha_nac: Date;
+    planId: number;
 }) {
   return await socioRepository.create(data);
 }
@@ -37,7 +49,9 @@ export async function updateSocio(
     direccion: string;
     fecha_baja?: Date | null;
     fecha_nac: Date;
-  }
+    planId: number;
+  },
+  actor?: Actor
 ) {
   await getSocioById(id);
 
@@ -52,9 +66,35 @@ export async function updateSocio(
   return socioActualizado;
 }
 
-export async function borrarSocio(id: number) {
-  const socio = await getSocioById(id);
+export async function borrarSocio(id: number, actor?: Actor) {
+    await getSocioById(id, actor);
+    return await socioRepository.borrar(id);
+}
 
-  // Si querés evitar un error SQL de Foreign Key al borrar físicamente:
-  return await socioRepository.borrar(id);
+export async function getSociosByPlan(planId: number) {
+    const socios = await socioRepository.findAllByPlan(planId, primerDiaDelMesActual());
+    return socios.map(({ cuotas, ...socio }) => ({
+        ...socio,
+        estadoCuota: cuotas.length > 0 ? 'AL_DIA' : 'ADEUDA',
+    }));
+}
+
+export async function getSocioDetalle(id: number, actor?: Actor) {
+    if (actor && actor.rol === Rol.SOCIO && !esPropietarioSocio(actor, id)) {
+        throw new HttpError(403, "No puede acceder a este socio");
+    }
+
+    const socio = await socioRepository.findByIdConDetalle(id);
+    if (!socio) {
+        throw new HttpError(404, "Socio no encontrado");
+    }
+
+    const { cuotas, plan, ...resto } = socio;
+
+    return {
+        ...resto,
+        plan,
+        cuotas,
+        estadoCuotas: estadoDeCuotas(cuotas),
+    };
 }

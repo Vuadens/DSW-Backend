@@ -1,4 +1,6 @@
-import { Router } from "express";
+import {Router} from "express";
+import {authorize} from '../middlewares/auth.middleware';
+import {Rol} from '@prisma/client';
 import {
   getSocios,
   getSocioById,
