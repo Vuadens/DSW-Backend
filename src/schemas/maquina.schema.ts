@@ -24,5 +24,17 @@ export const maquinaIdSchema = z.object({
   id: z.coerce.number().int().positive('El id debe ser un entero positivo'),
 });
 
+// Esquema para validar el body de POST /api/maquinas/:id/clases
+export const vincularClaseSchema = z.object({
+  idClase: z.coerce
+    .number({
+      required_error: 'El idClase es obligatorio',
+      invalid_type_error: 'El idClase debe ser un número entero',
+    })
+    .int('El idClase debe ser un número entero')
+    .positive('El idClase debe ser mayor a 0'),
+});
+
 export type CreateMaquinaInput = z.infer<typeof createMaquinaSchema>;
 export type UpdateMaquinaInput = z.infer<typeof updateMaquinaSchema>;
+export type VincularClaseInput = z.infer<typeof vincularClaseSchema>;

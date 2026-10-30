@@ -1,4 +1,5 @@
 import { maquinaRepository } from '../repositories/maquina.repository';
+import { prisma } from '../config/prisma';
 import { HttpError } from '../utils/http-error';
 import { CreateMaquinaInput, UpdateMaquinaInput } from '../schemas/maquina.schema';
 
@@ -24,18 +25,29 @@ export const maquinaService = {
     return await maquinaRepository.update(idMaquina, data);
   },
 
-    remove: async (idMaquina: number) => {
+  vincularClase: async (idMaquina: number, idClase: number) => {
     const maquina = await maquinaService.findById(idMaquina);
-    if (maquina.clases && maquina.clases.length > 0) {
+
+    if (maquina.estado !== 'DISPONIBLE') {
       throw new HttpError(
         400,
-        'No se puede eliminar la máquina físicamente porque está vinculada a clases activas'
+        `No se puede vincular la máquina porque su estado actual es ${maquina.estado}`
       );
     }
-    return await maquinaRepository.remove(idMaquina);
+
+    const claseExiste = await prisma.clase.findUnique({ where: { idClase } });
+    if (!claseExiste) {
+      throw new HttpError(404, 'La clase especificada no existe');
+    }
+
+    return await maquinaRepository.vincularClase(idMaquina, idClase);
   },
-  
-  // 5. Regla de negocio: Inhabilitar, desvincular de clases y armar advertencia
+
+  desvincularClase: async (idMaquina: number, idClase: number) => {
+    await maquinaService.findById(idMaquina);
+    return await maquinaRepository.desvincularClase(idMaquina, idClase);
+  },
+
   inhabilitar: async (idMaquina: number) => {
     const maquina = await maquinaRepository.findById(idMaquina);
     if (!maquina) {
@@ -45,7 +57,6 @@ export const maquinaService = {
     let advertencia: string | null = null;
     let nombresClases: string[] = [];
 
-    // Si tiene clases asociadas, las recopilamos y desvinculamos la máquina
     if (maquina.clases && maquina.clases.length > 0) {
       nombresClases = maquina.clases.map((c: any) => c.nombre || `Clase #${c.idClase}`);
       advertencia = `La máquina se planeaba usar en: '${nombresClases.join(', ')}'. Se desvinculó automáticamente.`;
@@ -57,7 +68,7 @@ export const maquinaService = {
       estado: 'INHABILITADA',
     });
 
-    return {            //Mensaje de nombres de clases que estan vinculadas con la maquina dada de baja y actualiza la maquina
+    return {
       mensaje: 'Máquina inhabilitada con éxito',
       advertencia,
       clasesAfectadas: nombresClases,
@@ -65,7 +76,6 @@ export const maquinaService = {
     };
   },
 
-  // 6. Pasar máquina a reparación
   mandarAReparacion: async (idMaquina: number) => {
     await maquinaService.findById(idMaquina);
     return await maquinaRepository.update(idMaquina, {
@@ -73,4 +83,14 @@ export const maquinaService = {
     });
   },
 
+  remove: async (idMaquina: number) => {
+    const maquina = await maquinaService.findById(idMaquina);
+    if (maquina.clases && maquina.clases.length > 0) {
+      throw new HttpError(
+        400,
+        'No se puede eliminar la máquina físicamente porque está vinculada a clases activas'
+      );
+    }
+    return await maquinaRepository.remove(idMaquina);
+  },
 };

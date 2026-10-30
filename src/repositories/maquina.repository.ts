@@ -28,12 +28,34 @@ export const maquinaRepository = {
       data,
     }),
 
-  remove: (idMaquina: number) =>
-    prisma.maquina.delete({
+  
+  vincularClase: (idMaquina: number, idClase: number) =>
+    prisma.maquina.update({
       where: { idMaquina },
+      data: {
+        clases: {
+          connect: { idClase },
+        },
+      },
+      include: {
+        clases: true,
+      },
     }),
 
-  // 5. Desvincular de todas las clases (utilizado al inhabilitar)
+  
+  desvincularClase: (idMaquina: number, idClase: number) =>
+    prisma.maquina.update({
+      where: { idMaquina },
+      data: {
+        clases: {
+          disconnect: { idClase },
+        },
+      },
+      include: {
+        clases: true,
+      },
+    }),
+
   desvincularDeTodasLasClases: (idMaquina: number) =>
     prisma.maquina.update({
       where: { idMaquina },
@@ -44,4 +66,8 @@ export const maquinaRepository = {
       },
     }),
 
+  remove: (idMaquina: number) =>
+    prisma.maquina.delete({
+      where: { idMaquina },
+    }),
 };
