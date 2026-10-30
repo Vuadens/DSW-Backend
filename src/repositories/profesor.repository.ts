@@ -2,7 +2,7 @@ import { prisma } from '../config/prisma';
 import { PersonaInput } from '../schemas/persona.schema';
 import * as PersonaRepository from './persona.repository';
 
-const incluir = { persona: true, turnos: true } as const;
+const incluir = { persona: true } as const;
 
 export const obtenerProfesores = async () => {
   return await prisma.profesor.findMany({ include: incluir });

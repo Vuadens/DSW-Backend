@@ -40,13 +40,13 @@ Además, `nombre`, `apellido`, `DNI`, `telefono` y `fecha_nac` no se eliminaron 
 - **Material** (`idMaterial`, `descripcion`, `stock`).
 - Relación **Plan incluye Actividad** (1..* — 1..*).
 - Relación **Clase se dicta en Turno** (0..* — 1).
+- `Usuario.email`.
 - `Actividad.tipo`.
 
 #### En el código pero no en el modelo de dominio
 
-- **Usuario**: `username` se llama `usuario` y es solo un nombre visible, opcional y no
-  único; se accede con `email` o con el DNI de la persona. La fecha de alta se llama
-  `createdAt` (en el modelo, `fechaCreacion`); además tiene `updatedAt`.
+- **Usuario**: el nombre de acceso se llama `usuario` (en el modelo, `username`) y la fecha
+  de alta `createdAt` (en el modelo, `fechaCreacion`); además tiene `updatedAt`.
 - **Plan**: `descripcion`, `duracionMeses`, `activo`, `createdAt`, `updatedAt`.
 - **Actividad**: `nombre`, `cupoMaximo`, `creadaEn`; la PK se llama `id` (en el modelo,
   `idActividad`).
@@ -55,36 +55,3 @@ Además, `nombre`, `apellido`, `DNI`, `telefono` y `fecha_nac` no se eliminaron 
 - **Turno**: `nombre`, `activo` y una relación muchos a muchos **Turno–Profesor** (turnos de
   trabajo del personal). En el modelo `Turno` se relaciona con `Clase`, no con `Profesor`.
 - **Inscripcion**: `activo` (baja lógica de la inscripción).
-
-## Puesta en marcha local
-
-```bash
-npm install
-cp .env.example .env   # completar DATABASE_URL, JWT_SECRET, ADMIN_EMAIL y ADMIN_PASSWORD
-npx prisma migrate deploy
-npm run seed
-npm run dev
-```
-
-El seed es idempotente:
-
-- Crea el administrador inicial (`ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_DNI`) o le
-  reemplaza el email provisorio.
-- Precarga los 21 turnos de trabajo: mañana (07–13), tarde (13–19) y noche (19–23) para
-  cada día de la semana.
-- Si la base no tiene planes, carga datos de demo: planes, actividades, clases, profesores
-  con sus turnos, socios, cuotas del mes e inscripciones.
-
-### Cuentas de demo
-
-Todas usan la contraseña `DEMO_PASSWORD` (por defecto `demo1234`). Se puede entrar con el
-email o con el DNI.
-
-| Rol | Email | DNI |
-|---|---|---|
-| Profesor | `marcos.benitez@hadesgym.com` | `28450111` |
-| Profesor | `sofia.rossi@hadesgym.com` | `33120458` |
-| Socio (al día) | `lucas.fernandez@gmail.com` | `38450192` |
-| Socio (adeuda) | `ignacio.sosa@outlook.com` | `36980112` |
-
-El resto de las cuentas están en `prisma/seed.ts`.
