@@ -1,7 +1,7 @@
 import 'dotenv/config';
-import {DiaSemana, PrismaClient, Rol} from '@prisma/client';
+import {DiaSemana, Plan, PrismaClient, Rol} from '@prisma/client';
 import {hashPassword} from '../src/utils/password';
-import {primerDiaDelMesActual} from '../src/utils/fechas';
+import {primerDiaDelMesActual, proximaFecha} from '../src/utils/fechas';
 
 const prisma = new PrismaClient();
 
@@ -62,7 +62,7 @@ const seedDemo = async () => {
     if ((await prisma.plan.count()) > 0) return;
     const passwordHash = await hashPassword(process.env.DEMO_PASSWORD || 'demo1234');
 
-    const planes = [];
+    const planes: Plan[] = [];
     for (const plan of [
         {nombre: 'Black Pass Total', tipo: 'PREMIUM', precio: 64000, descripcion: 'Pase total: todas las clases y vestuarios premium.'},
         {nombre: 'Fit & Clases', tipo: 'PRO', precio: 49000, descripcion: 'Musculación y clases grupales.'},
@@ -71,16 +71,19 @@ const seedDemo = async () => {
         planes.push(await prisma.plan.create({data: plan}));
     }
 
+    // [nombre, cupo máximo, planes que la incluyen]
     const actividades = [];
-    for (const actividad of [
-        {nombre: 'Cross Functional', cupoMaximo: 20},
-        {nombre: 'Cross Functional Matutino', cupoMaximo: 20},
-        {nombre: 'Yoga & Flow', cupoMaximo: 18},
-        {nombre: 'Spinning Pro', cupoMaximo: 25},
-        {nombre: 'Spinning Sunset', cupoMaximo: 25},
-        {nombre: 'Musculación', cupoMaximo: 40},
-    ]) {
-        actividades.push(await prisma.actividad.create({data: actividad}));
+    for (const [nombre, cupoMaximo, incluidaEn] of [
+        ['Cross Functional', 20, [0, 1]],
+        ['Cross Functional Matutino', 20, [0, 1]],
+        ['Yoga & Flow', 18, [0, 1]],
+        ['Spinning Pro', 25, [0, 1]],
+        ['Spinning Sunset', 25, [0, 1]],
+        ['Musculación', 40, [0, 2]],
+    ] as const) {
+        actividades.push(await prisma.actividad.create({
+            data: {nombre, cupoMaximo, planes: {connect: incluidaEn.map((p) => ({idPlan: planes[p].idPlan}))}},
+        }));
     }
 
     // [nombre, apellido, dni, email, teléfono, cargo, franjas en las que trabaja de lunes a viernes]
@@ -155,9 +158,15 @@ const seedDemo = async () => {
         }));
     }
 
-    // Algunas inscripciones para que los listados muestren ocupación.
-    for (const [socio, clase] of [[0, 0], [0, 3], [1, 2], [4, 0], [4, 4], [5, 2]] as const) {
-        await prisma.inscripcion.create({data: {idSocio: socios[socio].idPersona, idClase: clases[clase].idClase}});
+    // Reservas para la próxima fecha de cada clase, para que los listados muestren ocupación.
+    for (const [socio, clase] of [[0, 0], [0, 3], [1, 2], [4, 0], [4, 4], [1, 4]] as const) {
+        await prisma.inscripcion.create({
+            data: {
+                idSocio: socios[socio].idPersona,
+                idClase: clases[clase].idClase,
+                fechaClase: proximaFecha(clases[clase].diaSemana),
+            },
+        });
     }
 };
 

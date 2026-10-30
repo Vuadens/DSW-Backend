@@ -38,7 +38,6 @@ Además, `nombre`, `apellido`, `DNI`, `telefono` y `fecha_nac` no se eliminaron 
 - **Maquina** (`idMaquina`, `nombre`, `descripcion`, `tipo`, `estado`) y **Mantenimiento**
   (`fechaInicio`, `fechaFinEsperada`, `fechaFinReal`, `descripcion`).
 - **Material** (`idMaterial`, `descripcion`, `stock`).
-- Relación **Plan incluye Actividad** (1..* — 1..*).
 - Relación **Clase se dicta en Turno** (0..* — 1).
 - `Actividad.tipo`.
 
@@ -54,7 +53,8 @@ Además, `nombre`, `apellido`, `DNI`, `telefono` y `fecha_nac` no se eliminaron 
   en el código cada clase guarda su propio horario.
 - **Turno**: `nombre`, `activo` y una relación muchos a muchos **Turno–Profesor** (turnos de
   trabajo del personal). En el modelo `Turno` se relaciona con `Clase`, no con `Profesor`.
-- **Inscripcion**: `activo` (baja lógica de la inscripción).
+- **Inscripcion**: es una reserva para una fecha puntual (`fechaClase`), con `estado`
+  (`CONFIRMADA` / `CANCELADA`, baja lógica) y `asistio`.
 
 ## Puesta en marcha local
 
