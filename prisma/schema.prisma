@@ -18,21 +18,41 @@ model Plan {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  socios Socio[]
+  socios      Socio[]
+  // Actividades que incluye el plan: un socio solo reserva clases de estas actividades.
+  actividades Actividad[]
+}
+
+// Superclase del modelo de dominio. Profesor, Socio y Administrador la
+// especializan con una tabla por subtipo cuya PK es también FK a Persona
+// (clave primaria compartida): cada persona tiene un único id, idPersona.
+model Persona {
+  idPersona Int      @id @default(autoincrement())
+  dni       String   @unique
+  nombre    String
+  apellido  String
+  telefono  String
+  fechaNac  DateTime
+
+  profesor      Profesor?
+  socio         Socio?
+  administrador Administrador?
+  usuario       Usuario?
 }
 
 model Profesor {
-  idProfesor Int    @id @default(autoincrement())
-  nombre     String
-  apellido   String
+  idPersona  Int     @id
+  persona    Persona @relation(fields: [idPersona], references: [idPersona], onDelete: Cascade)
   cargo      String
-  supervisorId Int?
-  supervisor Profesor? @relation("Supervision", fields: [supervisorId], references: [idProfesor])
-  supervisados Profesor[] @relation("Supervision")
   clases     Clase[]
-  usuario    Usuario?
   turnos     Turno[]
 }
+
+model Administrador {
+  idPersona Int     @id
+  persona   Persona @relation(fields: [idPersona], references: [idPersona], onDelete: Cascade)
+}
+
 
 // Turno de trabajo del personal (franja horaria de un día), independiente de las
 // clases. Relación muchos a muchos con Profesor: un turno lo cubren varios
@@ -50,21 +70,15 @@ model Turno {
 }
 
 model Socio {
-  idSocio    Int       @id @default(autoincrement())
-  DNI        String
-  apellido   String
-  nombre     String
-  email      String
-  telefono   String
-  direccion  String
-  fecha_baja DateTime?
-  fecha_nac  DateTime
+  idPersona  Int       @id
+  persona    Persona   @relation(fields: [idPersona], references: [idPersona], onDelete: Cascade)
+  fechaAlta  DateTime  @default(now())
+  fechaBaja  DateTime?
 
   planId Int
   plan   Plan    @relation(fields: [planId], references: [idPlan])
   cuotas Cuota[]
   inscripciones Inscripcion[]
-  usuario      Usuario?
 }
 
 model Actividad {
@@ -74,6 +88,7 @@ model Actividad {
   cupoMaximo  Int
   creadaEn    DateTime @default(now())
   clases      Clase[]
+  planes      Plan[]
 }
 
 
@@ -91,7 +106,7 @@ model Clase {
   actividad   Actividad @relation(fields: [idActividad], references: [id])
 
   idProfesor  Int
-  profesor    Profesor  @relation(fields: [idProfesor], references: [idProfesor])
+  profesor    Profesor  @relation(fields: [idProfesor], references: [idPersona])
 
   inscripciones Inscripcion[]
   maquinas      Maquina[]
@@ -115,23 +130,31 @@ enum DiaSemana {
   DOMINGO
 }
 
+// Reserva de un socio para una fecha puntual de una clase.
 model Inscripcion {
-  idInscripcion    Int       @id @default(autoincrement())
-  fechaInscripcion DateTime  @default(now())
-  activo           Boolean  @default(true)
+  idInscripcion    Int               @id @default(autoincrement())
+  fechaInscripcion DateTime          @default(now())
+  fechaClase       DateTime          @db.Date
+  estado           EstadoInscripcion @default(CONFIRMADA)
+  asistio          Boolean           @default(false)
 
   // Relación con Socio
   idSocio          Int
-  socio            Socio     @relation(fields: [idSocio], references: [idSocio])
+  socio            Socio     @relation(fields: [idSocio], references: [idPersona])
 
   // Relación con Clase
   idClase          Int
   clase            Clase     @relation(fields: [idClase], references: [idClase])
 
-  // Un socio no debería inscribirse dos veces a la misma clase
-  @@unique([idSocio, idClase])
+  // Un socio no puede reservar dos veces la misma clase en la misma fecha
+  @@unique([idSocio, idClase, fechaClase])
   @@index([idSocio])
-  @@index([idClase])
+  @@index([idClase, fechaClase])
+}
+
+enum EstadoInscripcion {
+  CONFIRMADA
+  CANCELADA
 }
 
 enum Rol {
@@ -140,18 +163,18 @@ enum Rol {
   SOCIO
 }
 
+// Se accede con email o con el DNI de la persona. `usuario` es solo un nombre visible.
 model Usuario {
   idUsuario   Int      @id @default(autoincrement())
-  usuario     String   @unique
+  email       String   @unique
+  usuario     String?
   passwordHash String
   rol         Rol
   activo      Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  socioId     Int?     @unique
-  socio       Socio?   @relation(fields: [socioId], references: [idSocio])
-  profesorId  Int?     @unique
-  profesor    Profesor? @relation(fields: [profesorId], references: [idProfesor])
+  personaId   Int      @unique
+  persona     Persona  @relation(fields: [personaId], references: [idPersona], onDelete: Cascade)
 }
 
 model Cuota {
@@ -161,7 +184,7 @@ model Cuota {
   valor     Decimal
 
   socioId Int
-  socio   Socio @relation(fields: [socioId], references: [idSocio])
+  socio   Socio @relation(fields: [socioId], references: [idPersona])
 
   @@unique([socioId, mesAnio])
 }

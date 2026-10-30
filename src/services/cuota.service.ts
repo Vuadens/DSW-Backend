@@ -29,7 +29,7 @@ export const cuotaService = {
             throw new HttpError(404, 'Socio no encontrado');
         }
 
-        if (socio.fecha_baja !== null) {
+        if (socio.fechaBaja !== null) {
             throw new HttpError(409, 'El socio está dado de baja');
         }
 

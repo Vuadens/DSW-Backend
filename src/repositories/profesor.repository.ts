@@ -1,43 +1,49 @@
 import { prisma } from '../config/prisma';
+import { PersonaInput } from '../schemas/persona.schema';
+import * as PersonaRepository from './persona.repository';
+
+const incluir = { persona: true, turnos: true } as const;
 
 export const obtenerProfesores = async () => {
-  return await prisma.profesor.findMany();
+  return await prisma.profesor.findMany({ include: incluir });
 };
 
 export const obtenerProfesorPorId = async (id: number) => {
   return await prisma.profesor.findUnique({
-    where: { idProfesor: id }
+    where: { idPersona: id },
+    include: incluir
   });
 };
 
-export const crearProfesor = async (data: {
-  nombre: string;
-  apellido: string;
-  cargo: string;
-  supervisorId?: number | null;
-}) => {
-  return await prisma.profesor.create({ data });
+export const crearProfesor = async (data: PersonaInput & { cargo: string }) => {
+  const { persona, resto } = PersonaRepository.separarPersona(data);
+  return await prisma.profesor.create({
+    data: { cargo: resto.cargo, persona: { create: persona as PersonaInput } },
+    include: incluir
+  });
 };
 
 export const actualizarProfesor = async (
   id: number,
-  data: Partial<{
-    nombre: string;
-    apellido: string;
-    cargo: string;
-    supervisorId: number | null;
-  }>
+  data: Partial<PersonaInput & { cargo: string }>
 ) => {
+  const { persona, resto } = PersonaRepository.separarPersona(data);
   return await prisma.profesor.update({
-    where: { idProfesor: id },
-    data
+    where: { idPersona: id },
+    data: {
+      ...resto,
+      ...(Object.keys(persona).length > 0 ? { persona: { update: persona } } : {})
+    },
+    include: incluir
   });
 };
 
 export const eliminarProfesor = async (id: number) => {
-  return await prisma.profesor.delete({
-    where: { idProfesor: id }
-  });
+  const [profesor] = await prisma.$transaction([
+    prisma.profesor.delete({ where: { idPersona: id } }),
+    PersonaRepository.eliminarSiNoTieneRoles(id)
+  ]);
+  return profesor;
 };
 
 export const contarClasesAsignadas = async (idProfesor: number): Promise<number> => {

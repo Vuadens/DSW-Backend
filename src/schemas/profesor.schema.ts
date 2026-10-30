@@ -1,10 +1,8 @@
 import { z } from 'zod';
+import { personaSchema } from './persona.schema';
 
-export const profesorSchema = z.object({
-  nombre: z.string().trim().min(1, 'El nombre es obligatorio'),
-  apellido: z.string().trim().min(1, 'El apellido es obligatorio'),
-  cargo: z.string().trim().min(1, 'El cargo es obligatorio'),
-  supervisorId: z.number().int().positive().nullable().optional()
+export const profesorSchema = personaSchema.extend({
+  cargo: z.string().trim().min(1, 'El cargo es obligatorio')
 });
 
 export const profesorIdSchema = z.object({

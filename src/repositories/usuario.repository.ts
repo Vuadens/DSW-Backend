@@ -3,13 +3,13 @@ import {prisma} from '../config/prisma';
 
 const publicSelect = {
     idUsuario: true,
+    email: true,
     usuario: true,
     rol: true,
     activo: true,
     createdAt: true,
     updatedAt: true,
-    socioId: true,
-    profesorId: true,
+    personaId: true,
 } satisfies Prisma.UsuarioSelect;
 
 export const usuarioRepository = {
@@ -18,10 +18,25 @@ export const usuarioRepository = {
     findById: (idUsuario: number) =>
         prisma.usuario.findUnique({where: {idUsuario}, select: publicSelect}),
 
-    findByUsuario: (usuario: string) =>
+    findByEmail: (email: string) =>
         prisma.usuario.findUnique({
-            where: {usuario},
+            where: {email},
             select: {...publicSelect, passwordHash: true},
+        }),
+
+    findByDni: (dni: string) =>
+        prisma.usuario.findFirst({
+            where: {persona: {dni}},
+            select: {...publicSelect, passwordHash: true},
+        }),
+
+    findPerfil: (idUsuario: number) =>
+        prisma.usuario.findUnique({
+            where: {idUsuario},
+            select: {
+                ...publicSelect,
+                persona: {select: {dni: true, nombre: true, apellido: true, telefono: true, fechaNac: true}},
+            },
         }),
 
     create: (data: Prisma.UsuarioCreateInput) =>
