@@ -40,13 +40,13 @@ Además, `nombre`, `apellido`, `DNI`, `telefono` y `fecha_nac` no se eliminaron 
 - **Material** (`idMaterial`, `descripcion`, `stock`).
 - Relación **Plan incluye Actividad** (1..* — 1..*).
 - Relación **Clase se dicta en Turno** (0..* — 1).
-- `Usuario.email`.
 - `Actividad.tipo`.
 
 #### En el código pero no en el modelo de dominio
 
-- **Usuario**: el nombre de acceso se llama `usuario` (en el modelo, `username`) y la fecha
-  de alta `createdAt` (en el modelo, `fechaCreacion`); además tiene `updatedAt`.
+- **Usuario**: `username` se llama `usuario` y es solo un nombre visible, opcional y no
+  único; se accede con `email` o con el DNI de la persona. La fecha de alta se llama
+  `createdAt` (en el modelo, `fechaCreacion`); además tiene `updatedAt`.
 - **Plan**: `descripcion`, `duracionMeses`, `activo`, `createdAt`, `updatedAt`.
 - **Actividad**: `nombre`, `cupoMaximo`, `creadaEn`; la PK se llama `id` (en el modelo,
   `idActividad`).

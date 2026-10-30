@@ -151,9 +151,11 @@ enum Rol {
   SOCIO
 }
 
+// Se accede con email o con el DNI de la persona. `usuario` es solo un nombre visible.
 model Usuario {
   idUsuario   Int      @id @default(autoincrement())
-  usuario     String   @unique
+  email       String   @unique
+  usuario     String?
   passwordHash String
   rol         Rol
   activo      Boolean  @default(true)
