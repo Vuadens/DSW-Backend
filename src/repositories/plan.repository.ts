@@ -6,14 +6,16 @@ import { prisma } from '../config/prisma'; // Importamos la instancia de Prisma 
 //método GET para obtener todos los planes activos
 export const obtenerPlanes = async () => {
   return await prisma.plan.findMany({
-    where: { activo: true } 
+    where: { activo: true },
+    include: { actividades: { select: { id: true, nombre: true } } }
   });
 };
 
 //método GET por ID
 export const obtenerPlanPorId = async (id: number) => {
   return await prisma.plan.findUnique({
-    where: { idPlan: id } 
+    where: { idPlan: id },
+    include: { actividades: { select: { id: true, nombre: true } } }
   });
 };
 
@@ -42,5 +44,12 @@ export const eliminarPlan = async (id: number) => {
 export const obtenerPlanPorNombre = async (nombre: string) => {
   return await prisma.plan.findFirst({
     where: { nombre: nombre }
+  });
+};
+
+// cuantos de los ids indicados corresponden a planes existentes
+export const contarPlanesPorIds = async (ids: number[]) => {
+  return await prisma.plan.count({
+    where: { idPlan: { in: ids } }
   });
 };

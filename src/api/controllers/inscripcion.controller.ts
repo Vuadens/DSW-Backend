@@ -18,7 +18,8 @@ export const inscripcionController = {
 
   getAll: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const inscripciones = await inscripcionService.findAll(req.user!);
+      // req.query ya fue validado y normalizado por validateQuery
+      const inscripciones = await inscripcionService.findAll(req.query as any, req.user!);
       return res.status(200).json(inscripciones);
     } catch (error) {
       next(error);
@@ -63,12 +64,23 @@ export const inscripcionController = {
     }
   },
 
+  asistencia: async (req: Request, res: Response, next: NextFunction) => {
+    const id = parsearId(req, res);
+    if (id === undefined) return;
+    try {
+      const inscripcion = await inscripcionService.registrarAsistencia(id, req.body.asistio, req.user!);
+      return res.status(200).json(inscripcion);
+    } catch (error) {
+      next(error);
+    }
+  },
+
   // Baja fisica
   remove: async (req: Request, res: Response, next: NextFunction) => {
     const id = parsearId(req, res);
     if (id === undefined) return;
     try {
-      await inscripcionService.remove(id, req.user!);
+      await inscripcionService.remove(id);
       return res.status(200).json({ mensaje: 'Inscripción eliminada correctamente' });
     } catch (error) {
       next(error);

@@ -14,7 +14,7 @@ export const getClases = async (peticion: Request, respuesta: Response, next: Ne
 export const getClaseById = async (peticion: Request, respuesta: Response, next: NextFunction) => {
 	try {
 		const { id } = peticion.params;
-		const clase = await ClaseService.obtenerClasePorId(Number(id));
+		const clase = await ClaseService.obtenerClasePorId(Number(id), (peticion.query as any).fecha);
 		respuesta.status(200).json(clase);
 	} catch (error) {
 		next(error);

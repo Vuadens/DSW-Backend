@@ -1,3 +1,4 @@
+import { EstadoInscripcion } from "@prisma/client";
 import { prisma } from "../config/prisma";
 import { PersonaInput } from "../schemas/persona.schema";
 import { CreateSocioInput, UpdateSocioInput } from "../schemas/socio.schema";
@@ -57,16 +58,30 @@ export async function borrar(id: number) {
     return socio;
 }
 
-export async function desactivarInscripcionesPorSocio(idSocio: number) {
+// Cancela las reservas confirmadas desde `desde` en adelante.
+export async function cancelarReservasFuturas(idSocio: number, desde: Date) {
   return await prisma.inscripcion.updateMany({
     where: {
       idSocio: idSocio,
-      activo: true,
+      estado: EstadoInscripcion.CONFIRMADA,
+      fechaClase: { gte: desde },
     },
     data: {
-      activo: false,
+      estado: EstadoInscripcion.CANCELADA,
     },
   });
+}
+
+// Lo necesario para validar una reserva: actividades del plan y cuota del mes.
+export async function findParaReserva(id: number, mesActual: Date) {
+    return await prisma.socio.findUnique({
+        where: { idPersona: id },
+        select: {
+            fechaBaja: true,
+            plan: { select: { actividades: { select: { id: true } } } },
+            cuotas: { where: { mesAnio: mesActual }, select: { idCuota: true } },
+        },
+    });
 }
 
 export async function findAllByPlan(planId: number, mesActual: Date) {

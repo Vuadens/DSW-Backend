@@ -3,7 +3,7 @@ import * as PlanRepository from "../repositories/plan.repository";
 import { HttpError } from "../utils/http-error";
 import { Rol } from '@prisma/client';
 import { Actor, esPropietarioSocio } from './authorization.service';
-import { primerDiaDelMesActual } from '../utils/fechas';
+import { hoy, primerDiaDelMesActual } from '../utils/fechas';
 import { estadoDeCuotas } from './cuota.service';
 import { validarDniUnico } from './persona.service';
 import { CreateSocioInput, UpdateSocioInput } from '../schemas/socio.schema';
@@ -51,9 +51,9 @@ export async function updateSocio(
   const socioActualizado = await socioRepository.update(id, data);
 
   // Regla de Negocio: Si se le da de baja lógica al socio,
-  // se cancelan automáticamente todas sus inscripciones activas
+  // se cancelan automáticamente sus reservas de hoy en adelante
   if (data.fechaBaja !== undefined && data.fechaBaja !== null) {
-    await socioRepository.desactivarInscripcionesPorSocio(id);
+    await socioRepository.cancelarReservasFuturas(id, hoy());
   }
 
   return socioActualizado;

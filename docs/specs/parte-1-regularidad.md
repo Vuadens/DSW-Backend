@@ -87,7 +87,7 @@ Endpoints:
 | `GET /inscripciones?idClase=&idSocio=&fecha=` | admin, profesor; socio solo las propias | Listado con filtros opcionales |
 | `GET /inscripciones/:id` | admin, profesor; socio solo la propia | |
 | `POST /inscripciones` `{ idSocio, idClase, fechaClase }` | admin; profesor solo en clases que dicta (D15); socio solo para sí mismo | Reserva |
-| `PATCH /inscripciones/:id/cancelar` | admin, profesor; socio solo la propia | Ver RN-C |
+| `PATCH /inscripciones/:id/cancelar` | admin; profesor solo en clases que dicta; socio solo la propia | Ver RN-C |
 | `PATCH /inscripciones/:id/asistencia` `{ asistio }` | admin; profesor solo si dicta esa clase | Ver RN-A |
 | `DELETE /inscripciones/:id` | admin | Borrado físico |
 
@@ -107,7 +107,8 @@ RN-A (asistencia): solo inscripciones `CONFIRMADA`, desde el horario de inicio d
 
 Plan–Actividad (D11): relación muchos a muchos entre `Plan` y `Actividad`. Los planes existentes quedan
 asociados a todas las actividades para no bloquear reservas; el seed de demo define las asociaciones reales.
-`GET /api/planes` incluye las actividades de cada plan.
+`GET /api/planes` incluye las actividades de cada plan y `GET /api/actividades` los planes de cada actividad.
+Las asociaciones se editan desde la actividad: `POST/PATCH /api/actividades` aceptan `planes: number[]`.
 
 Migración de datos: cada inscripción existente pasa a `fechaClase` = próxima fecha de su clase a partir de la fecha de
 la migración, con `estado` según `activo` y `asistio = false`.

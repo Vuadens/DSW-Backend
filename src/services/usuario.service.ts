@@ -37,8 +37,8 @@ export const usuarioService = {
     },
 
     create: async (data: CreateUsuarioInput) => {
-        const existente = await usuarioRepository.findByUsuario(data.usuario);
-        if (existente) throw new HttpError(409, 'Ya existe un usuario con ese nombre');
+        const existente = await usuarioRepository.findByEmail(data.email);
+        if (existente) throw new HttpError(409, 'Ya existe un usuario con ese email');
         await validarPersona(data.personaId, data.rol);
 
         try {

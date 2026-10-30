@@ -18,7 +18,9 @@ model Plan {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  socios Socio[]
+  socios      Socio[]
+  // Actividades que incluye el plan: un socio solo reserva clases de estas actividades.
+  actividades Actividad[]
 }
 
 // Superclase del modelo de dominio. Profesor, Socio y Administrador la
@@ -86,6 +88,7 @@ model Actividad {
   cupoMaximo  Int
   creadaEn    DateTime @default(now())
   clases      Clase[]
+  planes      Plan[]
 }
 
 
@@ -126,10 +129,13 @@ enum DiaSemana {
   DOMINGO
 }
 
+// Reserva de un socio para una fecha puntual de una clase.
 model Inscripcion {
-  idInscripcion    Int       @id @default(autoincrement())
-  fechaInscripcion DateTime  @default(now())
-  activo           Boolean  @default(true)
+  idInscripcion    Int               @id @default(autoincrement())
+  fechaInscripcion DateTime          @default(now())
+  fechaClase       DateTime          @db.Date
+  estado           EstadoInscripcion @default(CONFIRMADA)
+  asistio          Boolean           @default(false)
 
   // Relación con Socio
   idSocio          Int
@@ -139,10 +145,15 @@ model Inscripcion {
   idClase          Int
   clase            Clase     @relation(fields: [idClase], references: [idClase])
 
-  // Un socio no debería inscribirse dos veces a la misma clase
-  @@unique([idSocio, idClase])
+  // Un socio no puede reservar dos veces la misma clase en la misma fecha
+  @@unique([idSocio, idClase, fechaClase])
   @@index([idSocio])
-  @@index([idClase])
+  @@index([idClase, fechaClase])
+}
+
+enum EstadoInscripcion {
+  CONFIRMADA
+  CANCELADA
 }
 
 enum Rol {
