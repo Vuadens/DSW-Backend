@@ -11,8 +11,7 @@ export const inscripcionService = {
   findAll: async (actor: Actor) => {
     const inscripciones = await inscripcionRepository.findAll();
     if (actor.rol === Rol.SOCIO) {
-      if (actor.socioId === undefined) throw new HttpError(403, 'No puede acceder a inscripciones');
-      return inscripciones.filter((item) => item.idSocio === actor.socioId);
+      return inscripciones.filter((item) => item.idSocio === actor.personaId);
     }
     return inscripciones;
   },
@@ -23,7 +22,7 @@ export const inscripcionService = {
     if (!inscripcion) {
       throw new HttpError(404, 'Inscripción no encontrada');
     }
-    if (actor?.rol === Rol.SOCIO && actor.socioId !== inscripcion.idSocio) {
+    if (actor?.rol === Rol.SOCIO && actor.personaId !== inscripcion.idSocio) {
       throw new HttpError(403, 'No puede acceder a esta inscripcion');
     }
     return inscripcion;
@@ -31,15 +30,15 @@ export const inscripcionService = {
 
   // 3. Crear inscripción con reglas de negocio
   create: async (data: CreateInscripcionInput, actor: Actor) => {
-    if (actor.rol === Rol.SOCIO && actor.socioId !== data.idSocio) {
+    if (actor.rol === Rol.SOCIO && actor.personaId !== data.idSocio) {
       throw new HttpError(403, 'Solo puede inscribirse como socio propio');
     }
-    // Regla 1: Validar existencia del socio y que no tenga fecha_baja
+    // Regla 1: Validar existencia del socio y que no tenga fechaBaja
     const socio = await socioRepository.findById(data.idSocio);
     if (!socio) {
       throw new HttpError(400, 'El socio especificado no existe');
     }
-    if (socio.fecha_baja !== null) {
+    if (socio.fechaBaja !== null) {
       throw new HttpError(400, 'No se puede inscribir a un socio dado de baja');
     }
 

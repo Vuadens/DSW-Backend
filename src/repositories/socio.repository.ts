@@ -1,69 +1,60 @@
 import { prisma } from "../config/prisma";
+import { PersonaInput } from "../schemas/persona.schema";
+import { CreateSocioInput, UpdateSocioInput } from "../schemas/socio.schema";
+import * as PersonaRepository from "./persona.repository";
+
+const incluir = { persona: true } as const;
 
 export async function findAll() {
-    return await prisma.socio.findMany();
+    return await prisma.socio.findMany({ include: incluir });
 }
 
 export async function findById(id: number) {
     return await prisma.socio.findUnique({
         where: {
-            idSocio: id
-        }
+            idPersona: id
+        },
+        include: incluir
     });
 }
 
-export async function findByDNI(DNI: string) {
-    return await prisma.socio.findFirst({
-        where: {
-            DNI: DNI
-        }
-    });
-}
-
-export async function create(data: {
-    DNI: string;
-    apellido: string;
-    nombre: string;
-    email: string;
-    telefono: string;
-    direccion: string;
-    fecha_baja?: Date | null;
-    fecha_nac: Date;
-    planId: number;
-}) {
+export async function create(data: CreateSocioInput) {
+    const { persona, resto: { planId, ...resto } } = PersonaRepository.separarPersona(data);
     return await prisma.socio.create({
-        data: data
+        data: {
+            ...resto,
+            plan: { connect: { idPlan: planId } },
+            persona: { create: persona as PersonaInput }
+        },
+        include: incluir
     });
 }
 
-export async function update(
-    id: number,
-    data: {
-        DNI: string;
-        apellido: string;
-        nombre: string;
-        email: string;
-        telefono: string;
-        direccion: string;
-        fecha_baja?: Date | null;
-        fecha_nac: Date;
-        planId: number;
-    }
-) {
+export async function update(id: number, data: UpdateSocioInput) {
+    const { persona, resto: { planId, ...resto } } = PersonaRepository.separarPersona(data);
     return await prisma.socio.update({
         where: {
-            idSocio: id
+            idPersona: id
         },
-        data: data
+        data: {
+            ...resto,
+            ...(planId !== undefined ? { plan: { connect: { idPlan: planId } } } : {}),
+            ...(Object.keys(persona).length > 0 ? { persona: { update: persona } } : {})
+        },
+        include: incluir
     });
 }
 
 export async function borrar(id: number) {
-    return await prisma.socio.delete({
-        where: {
-            idSocio: id
-        }
-    });
+    const [socio] = await prisma.$transaction([
+        prisma.socio.delete({
+            where: {
+                idPersona: id
+            }
+        }),
+        PersonaRepository.eliminarSiNoTieneRoles(id)
+    ]);
+    return socio;
 }
 
 export async function desactivarInscripcionesPorSocio(idSocio: number) {
@@ -82,10 +73,8 @@ export async function findAllByPlan(planId: number, mesActual: Date) {
     return await prisma.socio.findMany({
         where: { planId },
         select: {
-            idSocio: true,
-            DNI: true,
-            nombre: true,
-            apellido: true,
+            idPersona: true,
+            persona: { select: { dni: true, nombre: true, apellido: true } },
             cuotas: { where: { mesAnio: mesActual }, select: { idCuota: true } },
         },
     });
@@ -93,8 +82,9 @@ export async function findAllByPlan(planId: number, mesActual: Date) {
 
 export async function findByIdConDetalle(id: number) {
     return await prisma.socio.findUnique({
-        where: { idSocio: id },
+        where: { idPersona: id },
         include: {
+            persona: true,
             plan: true,
             cuotas: { orderBy: { mesAnio: 'desc' } },
         },

@@ -7,7 +7,7 @@ export const inscripcionRepository = {
     prisma.inscripcion.findMany({
       where: { activo: true },
       include: {
-        socio: true,
+        socio: { include: { persona: true } },
         clase: {
           include: {
             actividad: {
@@ -15,7 +15,7 @@ export const inscripcionRepository = {
                 nombre: true,
               },
             },
-            profesor: true,
+            profesor: { include: { persona: true } },
           },
         },
       },
@@ -26,7 +26,7 @@ export const inscripcionRepository = {
     prisma.inscripcion.findUnique({
       where: { idInscripcion },
       include: {
-        socio: true,
+        socio: { include: { persona: true } },
         clase: {
           include: {
             actividad: {
@@ -34,7 +34,7 @@ export const inscripcionRepository = {
                 nombre: true,
               },
             },
-            profesor: true,
+            profesor: { include: { persona: true } },
           },
         },
       },

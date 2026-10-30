@@ -6,7 +6,7 @@ export const turnoRepository = {
     prisma.turno.findMany({
       where: { activo: true },
       include: {
-        profesores: true,
+        profesores: { include: { persona: true } },
       },
     }),
 
@@ -14,7 +14,7 @@ export const turnoRepository = {
     prisma.turno.findUnique({
       where: { idTurno },
       include: {
-        profesores: true,
+        profesores: { include: { persona: true } },
       },
     }),
 
@@ -44,11 +44,11 @@ export const turnoRepository = {
       where: { idTurno },
       data: {
         profesores: {
-          connect: { idProfesor },
+          connect: { idPersona: idProfesor },
         },
       },
       include: {
-        profesores: true,
+        profesores: { include: { persona: true } },
       },
     }),
 
@@ -57,11 +57,11 @@ export const turnoRepository = {
       where: { idTurno },
       data: {
         profesores: {
-          disconnect: { idProfesor },
+          disconnect: { idPersona: idProfesor },
         },
       },
       include: {
-        profesores: true,
+        profesores: { include: { persona: true } },
       },
     }),
 
@@ -87,10 +87,9 @@ obtenerProfesoresDeTurno: (idTurno: number) =>
       horaHasta: true,
       profesores: {
         select: {
-          idProfesor: true,
-          nombre: true,
-          apellido: true,
+          idPersona: true,
           cargo: true,
+          persona: { select: { nombre: true, apellido: true } },
         },
       },
     },

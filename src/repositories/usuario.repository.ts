@@ -8,8 +8,7 @@ const publicSelect = {
     activo: true,
     createdAt: true,
     updatedAt: true,
-    socioId: true,
-    profesorId: true,
+    personaId: true,
 } satisfies Prisma.UsuarioSelect;
 
 export const usuarioRepository = {

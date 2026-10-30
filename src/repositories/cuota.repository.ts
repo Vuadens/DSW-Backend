@@ -4,7 +4,7 @@ import { prisma } from '../config/prisma';
 export const cuotaRepository = {
   findSocioConPlan: (idSocio: number) =>
     prisma.socio.findUnique({
-      where: { idSocio },
+      where: { idPersona: idSocio },
       include: { plan: true },
     }),
 

@@ -1,22 +1,15 @@
 import {Rol} from '@prisma/client';
-import * as profesorRepository from '../repositories/profesor.repository';
 
+// Con clave primaria compartida, el id de socio y el de profesor son el
+// idPersona: alcanza con comparar el personaId del token y el rol.
 export type Actor = {
     id: number;
     rol: Rol;
-    socioId?: number;
-    profesorId?: number;
+    personaId: number;
 };
 
-export const esPropietarioSocio = (actor: Actor, socioId: number) =>
-    actor.rol === Rol.ADMINISTRADOR || actor.socioId === socioId;
+export const esPropietarioSocio = (actor: Actor, idSocio: number) =>
+    actor.rol === Rol.ADMINISTRADOR || (actor.rol === Rol.SOCIO && actor.personaId === idSocio);
 
-export const esPropietarioProfesor = (actor: Actor, profesorId: number) =>
-    actor.rol === Rol.ADMINISTRADOR || actor.profesorId === profesorId;
-
-export const esSupervisorDe = async (actor: Actor, profesorId: number) => {
-    if (actor.rol === Rol.ADMINISTRADOR) return true;
-    if (actor.profesorId === undefined) return false;
-    const profesor = await profesorRepository.obtenerProfesorPorId(profesorId);
-    return profesor?.supervisorId === actor.profesorId;
-};
+export const esPropietarioProfesor = (actor: Actor, idProfesor: number) =>
+    actor.rol === Rol.ADMINISTRADOR || (actor.rol === Rol.PROFESOR && actor.personaId === idProfesor);

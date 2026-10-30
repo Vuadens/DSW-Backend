@@ -6,7 +6,7 @@ import {HttpError} from '../../utils/http-error';
 declare global {
     namespace Express {
         interface Request {
-            user?: { id: number; rol: Rol; socioId?: number; profesorId?: number };
+            user?: { id: number; rol: Rol; personaId: number };
         }
     }
 }
