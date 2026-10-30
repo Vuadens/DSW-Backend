@@ -5,9 +5,11 @@ import {hashPassword} from '../src/utils/password';
 const prisma = new PrismaClient();
 
 const main = async () => {
-    const usuario = process.env.ADMIN_USUARIO;
+    const email = process.env.ADMIN_EMAIL?.trim().toLowerCase();
     const password = process.env.ADMIN_PASSWORD;
-    if (!usuario || !password) throw new Error('ADMIN_USUARIO y ADMIN_PASSWORD son obligatorios');
+    const usuario = process.env.ADMIN_USUARIO || 'admin';
+    const dni = process.env.ADMIN_DNI || '00000000';
+    if (!email || !password) throw new Error('ADMIN_EMAIL y ADMIN_PASSWORD son obligatorios');
 
     const existente = await prisma.usuario.findUnique({where: {usuario}});
     if (!existente) {

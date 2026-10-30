@@ -22,7 +22,7 @@ const validarPersona = async (personaId: number, rol: Rol, idUsuarioActual?: num
 
 const duplicateError = (error: unknown) => {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-        throw new HttpError(409, 'Ya existe un usuario con ese nombre');
+        throw new HttpError(409, 'Ya existe un usuario con ese email');
     }
     throw error;
 };
@@ -43,6 +43,7 @@ export const usuarioService = {
 
         try {
             return await usuarioRepository.create({
+                email: data.email,
                 usuario: data.usuario,
                 passwordHash: await hashPassword(data.password),
                 rol: data.rol,
@@ -63,6 +64,7 @@ export const usuarioService = {
         }
 
         const updateData: Prisma.UsuarioUpdateInput = {
+            ...(data.email !== undefined ? {email: data.email} : {}),
             ...(data.usuario !== undefined ? {usuario: data.usuario} : {}),
             ...(data.rol !== undefined ? {rol: data.rol} : {}),
             ...(data.activo !== undefined ? {activo: data.activo} : {}),
