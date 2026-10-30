@@ -7,8 +7,10 @@ import {HttpError} from '../utils/http-error';
 const INVALID_CREDENTIALS = 'Credenciales inválidas';
 
 export const authService = {
-    login: async ({usuario, password}: LoginInput) => {
-        const found = await usuarioRepository.findByUsuario(usuario);
+    login: async ({identificador, password}: LoginInput) => {
+        const found = identificador.includes('@')
+            ? await usuarioRepository.findByEmail(identificador.toLowerCase())
+            : await usuarioRepository.findByDni(identificador);
         if (!found || !found.activo) throw new HttpError(401, INVALID_CREDENTIALS);
 
         const passwordOk = await comparePassword(password, found.passwordHash);
@@ -20,12 +22,18 @@ export const authService = {
                 rol: found.rol,
                 personaId: found.personaId,
             }),
-            usuario: {idUsuario: found.idUsuario, usuario: found.usuario, rol: found.rol},
+            usuario: {
+                idUsuario: found.idUsuario,
+                usuario: found.usuario,
+                email: found.email,
+                rol: found.rol,
+                personaId: found.personaId,
+            },
         };
     },
 
     me: async (idUsuario: number) => {
-        const usuario = await usuarioRepository.findById(idUsuario);
+        const usuario = await usuarioRepository.findPerfil(idUsuario);
         if (!usuario) throw new HttpError(404, 'Usuario no encontrado');
         return usuario;
     },
