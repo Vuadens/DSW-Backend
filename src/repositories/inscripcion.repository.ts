@@ -40,13 +40,12 @@ export const inscripcionRepository = {
       },
     }),
 
-  // 3. Buscar si el socio ya tiene una inscripción activa en la clase (para evitar duplicados)
+  // 3. Buscar la inscripción del socio en la clase, activa o cancelada.
+  // Hay un unique (idSocio, idClase), así que puede existir a lo sumo una.
   findBySocioYClase: (idSocio: number, idClase: number) =>
-    prisma.inscripcion.findFirst({
+    prisma.inscripcion.findUnique({
       where: {
-        idSocio,
-        idClase,
-        activo: true,
+        idSocio_idClase: { idSocio, idClase },
       },
     }),
 
@@ -70,6 +69,13 @@ export const inscripcionRepository = {
     prisma.inscripcion.update({
       where: { idInscripcion },
       data: { activo: false },
+    }),
+
+  // Reactivar una inscripción cancelada (re-inscripción a la misma clase)
+  reactivar: (idInscripcion: number) =>
+    prisma.inscripcion.update({
+      where: { idInscripcion },
+      data: { activo: true, fechaInscripcion: new Date() },
     }),
 
   // 7. Eliminar físicamente

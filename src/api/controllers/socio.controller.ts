@@ -1,44 +1,76 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import * as socioService from "../../services/socio.service";
 
-export async function getSocios(_req: Request, res: Response) {
-    const socios = await socioService.getAllSocios();
+export async function getSocios(req: Request, res: Response, next: NextFunction) {
+    try {
+        const planId = req.query.planId ? Number(req.query.planId) : undefined;
 
-    res.json(socios);
+        if (req.query.planId && isNaN(planId!)) {
+            return res.status(400).json({ error: "El planId debe ser un número" });
+        }
+
+        const socios = planId
+            ? await socioService.getSociosByPlan(planId, req.user!)
+            : await socioService.getAllSocios(req.user!);
+
+        res.json(socios);
+    } catch (error) {
+        next(error);
+    }
 }
 
-export async function getSocioById(req: Request, res: Response) {
+export async function getSocioById(req: Request, res: Response, next: NextFunction) {
     const id = Number(req.params.id);
 
-    const socio = await socioService.getSocioById(id);
-
-    if (!socio) {
-        return res.status(404).json({
-            error: "Socio no encontrado"
-        });
+    if (isNaN(id)) {
+        return res.status(400).json({ error: "El id debe ser un número" });
     }
 
-    res.json(socio);
+    try {
+        const socio = await socioService.getSocioDetalle(id, req.user);
+        res.json(socio);
+    } catch (error) {
+        next(error);
+    }
 }
 
-export async function createSocio(req: Request, res: Response) {
-    const socio = await socioService.createSocio(req.body);
-
-    res.status(201).json(socio);
+// Express 4 no captura errores de handlers async: sin try/catch + next(error)
+// una excepcion tumba el proceso completo.
+export async function createSocio(req: Request, res: Response, next: NextFunction) {
+    try {
+        const socio = await socioService.createSocio(req.body);
+        res.status(201).json(socio);
+    } catch (error) {
+        next(error);
+    }
 }
 
-export async function updateSocio(req: Request, res: Response) {
+export async function updateSocio(req: Request, res: Response, next: NextFunction) {
     const id = Number(req.params.id);
 
-    const socio = await socioService.updateSocio(id, req.body);
+    if (isNaN(id)) {
+        return res.status(400).json({ error: "El id debe ser un número" });
+    }
 
-    res.json(socio);
+    try {
+        const socio = await socioService.updateSocio(id, req.body);
+        res.json(socio);
+    } catch (error) {
+        next(error);
+    }
 }
 
-export async function deleteSocio(req: Request, res: Response) {
+export async function deleteSocio(req: Request, res: Response, next: NextFunction) {
     const id = Number(req.params.id);
 
-    await socioService.borrarSocio(id);
+    if (isNaN(id)) {
+        return res.status(400).json({ error: "El id debe ser un número" });
+    }
 
-    res.status(200).json({ message: 'Socio eliminado correctamente' });
+    try {
+        await socioService.borrarSocio(id, req.user);
+        res.status(200).json({ message: 'Socio eliminado correctamente' });
+    } catch (error) {
+        next(error);
+    }
 }
