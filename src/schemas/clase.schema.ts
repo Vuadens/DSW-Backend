@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { fechaSchema } from './inscripcion.schema';
 
 export const DIAS_SEMANA = [
   'LUNES',
@@ -39,7 +40,14 @@ export const claseIdSchema = z.object({
 export const claseFiltrosSchema = z.object({
   dia: diaSemanaSchema.optional(),
   idProfesor: z.coerce.number().int().positive().optional(),
-  idActividad: z.coerce.number().int().positive().optional()
+  idActividad: z.coerce.number().int().positive().optional(),
+  // Fecha para calcular la ocupación; si se indica, solo devuelve las clases de ese día de la semana
+  fecha: fechaSchema.optional()
+});
+
+// GET /clases/:id?fecha=
+export const claseFechaSchema = z.object({
+  fecha: fechaSchema.optional()
 });
 
 export type ClaseInput = z.infer<typeof claseSchema>;
