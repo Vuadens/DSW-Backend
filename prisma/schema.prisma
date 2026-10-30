@@ -18,7 +18,9 @@ model Plan {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  socios Socio[]
+  socios      Socio[]
+  // Actividades que incluye el plan: un socio solo reserva clases de estas actividades.
+  actividades Actividad[]
 }
 
 // Superclase del modelo de dominio. Profesor, Socio y Administrador la
@@ -86,6 +88,7 @@ model Actividad {
   cupoMaximo  Int
   creadaEn    DateTime @default(now())
   clases      Clase[]
+  planes      Plan[]
 }
 
 
