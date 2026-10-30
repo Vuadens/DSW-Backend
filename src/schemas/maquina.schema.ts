@@ -24,6 +24,11 @@ export const maquinaIdSchema = z.object({
   id: z.coerce.number().int().positive('El id debe ser un entero positivo'),
 });
 
+// Parámetros de DELETE /api/maquinas/:id/clases/:idClase
+export const maquinaClaseParamsSchema = maquinaIdSchema.extend({
+  idClase: z.coerce.number().int().positive('El idClase debe ser un entero positivo'),
+});
+
 // Esquema para validar el body de POST /api/maquinas/:id/clases
 export const vincularClaseSchema = z.object({
   idClase: z.coerce
