@@ -11,23 +11,17 @@ const main = async () => {
     const dni = process.env.ADMIN_DNI || '00000000';
     if (!email || !password) throw new Error('ADMIN_EMAIL y ADMIN_PASSWORD son obligatorios');
 
-    const existente = await prisma.usuario.findFirst({where: {OR: [{email}, {persona: {dni}}]}});
-    if (existente) {
-        // Reemplaza el email provisorio que dejó la migración de Usuario.email.
-        if (existente.email !== email) {
-            await prisma.usuario.update({where: {idUsuario: existente.idUsuario}, data: {email}});
-        }
-    } else {
+    const existente = await prisma.usuario.findUnique({where: {usuario}});
+    if (!existente) {
         // Todo usuario se vincula a una persona: el admin inicial se crea como Administrador.
         await prisma.usuario.create({
             data: {
-                email,
                 usuario,
                 passwordHash: await hashPassword(password),
                 rol: Rol.ADMINISTRADOR,
                 persona: {
                     create: {
-                        dni,
+                        dni: process.env.ADMIN_DNI || '00000000',
                         nombre: usuario,
                         apellido: '',
                         telefono: '',
