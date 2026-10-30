@@ -54,28 +54,28 @@ export const maquinaController = {
     }
   },
 
-  vincularClase: async (req: Request, res: Response) => {
+  vincularActividad: async (req: Request, res: Response) => {
     try {
       const idMaquina = Number(req.params.id);
-      const { idClase } = req.body;
-      const resultado = await maquinaService.vincularClase(idMaquina, idClase);
+      const { idActividad } = req.body;
+      const resultado = await maquinaService.vincularActividad(idMaquina, idActividad);
       return res.status(200).json(resultado);
     } catch (error: any) {
       return res.status(error.status || 400).json({
-        error: error.message || 'Error al vincular la clase a la máquina',
+        error: error.message || 'Error al vincular la actividad a la máquina',
       });
     }
   },
 
-  desvincularClase: async (req: Request, res: Response) => {
+  desvincularActividad: async (req: Request, res: Response) => {
     try {
       const idMaquina = Number(req.params.id);
-      const idClase = Number(req.params.idClase);
-      const resultado = await maquinaService.desvincularClase(idMaquina, idClase);
+      const idActividad = Number(req.params.idActividad);
+      const resultado = await maquinaService.desvincularActividad(idMaquina, idActividad);
       return res.status(200).json(resultado);
     } catch (error: any) {
       return res.status(error.status || 400).json({
-        error: error.message || 'Error al desvincular la clase de la máquina',
+        error: error.message || 'Error al desvincular la actividad de la máquina',
       });
     }
   },

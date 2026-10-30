@@ -1,8 +1,11 @@
 import { prisma } from '../config/prisma';
 import { CreateActividadInput } from '../schemas/actividad.schema';
 
-// Los planes que incluyen la actividad, para que el frontend no haga pedidos extra.
-const incluir = { planes: { select: { idPlan: true, nombre: true } } } as const;
+// Los planes que incluyen la actividad y las máquinas que usa, para que el frontend no haga pedidos extra.
+const incluir = {
+  planes: { select: { idPlan: true, nombre: true } },
+  maquinas: { select: { idMaquina: true, nombre: true } },
+} as const;
 
 const conPlanes = (planes?: number[]) =>
   planes !== undefined ? { planes: { set: planes.map((idPlan) => ({ idPlan })) } } : {};

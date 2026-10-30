@@ -25,7 +25,7 @@ export const maquinaService = {
     return await maquinaRepository.update(idMaquina, data);
   },
 
-  vincularClase: async (idMaquina: number, idClase: number) => {
+  vincularActividad: async (idMaquina: number, idActividad: number) => {
     const maquina = await maquinaService.findById(idMaquina);
 
     if (maquina.estado !== 'DISPONIBLE') {
@@ -35,17 +35,17 @@ export const maquinaService = {
       );
     }
 
-    const claseExiste = await prisma.clase.findUnique({ where: { idClase } });
-    if (!claseExiste) {
-      throw new HttpError(404, 'La clase especificada no existe');
+    const actividadExiste = await prisma.actividad.findUnique({ where: { id: idActividad } });
+    if (!actividadExiste) {
+      throw new HttpError(404, 'La actividad especificada no existe');
     }
 
-    return await maquinaRepository.vincularClase(idMaquina, idClase);
+    return await maquinaRepository.vincularActividad(idMaquina, idActividad);
   },
 
-  desvincularClase: async (idMaquina: number, idClase: number) => {
+  desvincularActividad: async (idMaquina: number, idActividad: number) => {
     await maquinaService.findById(idMaquina);
-    return await maquinaRepository.desvincularClase(idMaquina, idClase);
+    return await maquinaRepository.desvincularActividad(idMaquina, idActividad);
   },
 
   inhabilitar: async (idMaquina: number) => {
@@ -55,13 +55,13 @@ export const maquinaService = {
     }
 
     let advertencia: string | null = null;
-    let nombresClases: string[] = [];
+    let nombresActividades: string[] = [];
 
-    if (maquina.clases && maquina.clases.length > 0) {
-      nombresClases = maquina.clases.map((c: any) => c.nombre || `Clase #${c.idClase}`);
-      advertencia = `La máquina se planeaba usar en: '${nombresClases.join(', ')}'. Se desvinculó automáticamente.`;
+    if (maquina.actividades.length > 0) {
+      nombresActividades = maquina.actividades.map((a) => a.nombre);
+      advertencia = `La máquina se planeaba usar en: '${nombresActividades.join(', ')}'. Se desvinculó automáticamente.`;
 
-      await maquinaRepository.desvincularDeTodasLasClases(idMaquina);
+      await maquinaRepository.desvincularDeTodasLasActividades(idMaquina);
     }
 
     const maquinaActualizada = await maquinaRepository.update(idMaquina, {
@@ -71,7 +71,7 @@ export const maquinaService = {
     return {
       mensaje: 'Máquina inhabilitada con éxito',
       advertencia,
-      clasesAfectadas: nombresClases,
+      actividadesAfectadas: nombresActividades,
       maquina: maquinaActualizada,
     };
   },
@@ -85,10 +85,10 @@ export const maquinaService = {
 
   remove: async (idMaquina: number) => {
     const maquina = await maquinaService.findById(idMaquina);
-    if (maquina.clases && maquina.clases.length > 0) {
+    if (maquina.actividades.length > 0) {
       throw new HttpError(
         400,
-        'No se puede eliminar la máquina físicamente porque está vinculada a clases activas'
+        'No se puede eliminar la máquina físicamente porque está vinculada a actividades'
       );
     }
     return await maquinaRepository.remove(idMaquina);

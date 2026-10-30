@@ -24,22 +24,22 @@ export const maquinaIdSchema = z.object({
   id: z.coerce.number().int().positive('El id debe ser un entero positivo'),
 });
 
-// Parámetros de DELETE /api/maquinas/:id/clases/:idClase
-export const maquinaClaseParamsSchema = maquinaIdSchema.extend({
-  idClase: z.coerce.number().int().positive('El idClase debe ser un entero positivo'),
+// Parámetros de DELETE /api/maquinas/:id/actividades/:idActividad
+export const maquinaActividadParamsSchema = maquinaIdSchema.extend({
+  idActividad: z.coerce.number().int().positive('El idActividad debe ser un entero positivo'),
 });
 
-// Esquema para validar el body de POST /api/maquinas/:id/clases
-export const vincularClaseSchema = z.object({
-  idClase: z.coerce
+// Esquema para validar el body de POST /api/maquinas/:id/actividades
+export const vincularActividadSchema = z.object({
+  idActividad: z.coerce
     .number({
-      required_error: 'El idClase es obligatorio',
-      invalid_type_error: 'El idClase debe ser un número entero',
+      required_error: 'El idActividad es obligatorio',
+      invalid_type_error: 'El idActividad debe ser un número entero',
     })
-    .int('El idClase debe ser un número entero')
-    .positive('El idClase debe ser mayor a 0'),
+    .int('El idActividad debe ser un número entero')
+    .positive('El idActividad debe ser mayor a 0'),
 });
 
 export type CreateMaquinaInput = z.infer<typeof createMaquinaSchema>;
 export type UpdateMaquinaInput = z.infer<typeof updateMaquinaSchema>;
-export type VincularClaseInput = z.infer<typeof vincularClaseSchema>;
+export type VincularActividadInput = z.infer<typeof vincularActividadSchema>;

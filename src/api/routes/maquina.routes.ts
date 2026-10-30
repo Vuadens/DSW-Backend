@@ -6,9 +6,9 @@ import { authorize } from '../middlewares/auth.middleware';
 import {
   createMaquinaSchema,
   updateMaquinaSchema,
-  vincularClaseSchema,
+  vincularActividadSchema,
   maquinaIdSchema,
-  maquinaClaseParamsSchema,
+  maquinaActividadParamsSchema,
 } from '../../schemas/maquina.schema';
 
 const router = Router();
@@ -21,7 +21,7 @@ router.patch('/:id', soloAdmin, validateParams(maquinaIdSchema), validate(update
 router.patch('/:id/inhabilitar', soloAdmin, validateParams(maquinaIdSchema), maquinaController.inhabilitar);
 router.patch('/:id/reparacion', soloAdmin, validateParams(maquinaIdSchema), maquinaController.mandarAReparacion);
 router.delete('/:id', soloAdmin, validateParams(maquinaIdSchema), maquinaController.remove);
-router.post('/:id/clases', soloAdmin, validateParams(maquinaIdSchema), validate(vincularClaseSchema), maquinaController.vincularClase);
-router.delete('/:id/clases/:idClase', soloAdmin, validateParams(maquinaClaseParamsSchema), maquinaController.desvincularClase);
+router.post('/:id/actividades', soloAdmin, validateParams(maquinaIdSchema), validate(vincularActividadSchema), maquinaController.vincularActividad);
+router.delete('/:id/actividades/:idActividad', soloAdmin, validateParams(maquinaActividadParamsSchema), maquinaController.desvincularActividad);
 
 export default router;

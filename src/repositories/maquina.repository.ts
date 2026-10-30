@@ -5,7 +5,7 @@ export const maquinaRepository = {
   findAll: () =>
     prisma.maquina.findMany({
       include: {
-        clases: true,
+        actividades: true,
       },
     }),
 
@@ -13,7 +13,7 @@ export const maquinaRepository = {
     prisma.maquina.findUnique({
       where: { idMaquina },
       include: {
-        clases: true,
+        actividades: true,
       },
     }),
 
@@ -29,38 +29,38 @@ export const maquinaRepository = {
     }),
 
   
-  vincularClase: (idMaquina: number, idClase: number) =>
+  vincularActividad: (idMaquina: number, idActividad: number) =>
     prisma.maquina.update({
       where: { idMaquina },
       data: {
-        clases: {
-          connect: { idClase },
+        actividades: {
+          connect: { id: idActividad },
         },
       },
       include: {
-        clases: true,
+        actividades: true,
       },
     }),
 
   
-  desvincularClase: (idMaquina: number, idClase: number) =>
+  desvincularActividad: (idMaquina: number, idActividad: number) =>
     prisma.maquina.update({
       where: { idMaquina },
       data: {
-        clases: {
-          disconnect: { idClase },
+        actividades: {
+          disconnect: { id: idActividad },
         },
       },
       include: {
-        clases: true,
+        actividades: true,
       },
     }),
 
-  desvincularDeTodasLasClases: (idMaquina: number) =>
+  desvincularDeTodasLasActividades: (idMaquina: number) =>
     prisma.maquina.update({
       where: { idMaquina },
       data: {
-        clases: {
+        actividades: {
           set: [],
         },
       },

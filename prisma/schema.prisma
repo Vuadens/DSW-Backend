@@ -89,6 +89,7 @@ model Actividad {
   creadaEn    DateTime @default(now())
   clases      Clase[]
   planes      Plan[]
+  maquinas    Maquina[]
 }
 
 
@@ -109,7 +110,6 @@ model Clase {
   profesor    Profesor  @relation(fields: [idProfesor], references: [idPersona])
 
   inscripciones Inscripcion[]
-  maquinas      Maquina[]
 
   @@index([idActividad])
   @@index([idProfesor])
@@ -196,8 +196,8 @@ model Maquina {
   descripcion String?
   estado      EstadoMaquina  @default(DISPONIBLE)
 
-  // Relación N:M con Clase
-  clases      Clase[]
+  // Relación N:M con Actividad: qué actividades usan cada máquina
+  actividades Actividad[]
 }
 
 enum EstadoMaquina {

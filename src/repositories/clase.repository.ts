@@ -3,7 +3,7 @@ import type { ClaseFiltros, ClaseInput } from '../schemas/clase.schema';
 
 
 // Para que el frontend tenga el nombre de la actividad y del profesor sin pedidos extra.
-const incluir = { actividad: true, profesor: { include: { persona: true } }, maquinas: true } as const;
+const incluir = { actividad: true, profesor: { include: { persona: true } } } as const;
 
 export const obtenerClases = async (filtros: ClaseFiltros = {}) => {
   return await prisma.clase.findMany({

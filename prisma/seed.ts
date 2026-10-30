@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import {DiaSemana, Plan, PrismaClient, Rol} from '@prisma/client';
+import {Actividad, DiaSemana, Plan, PrismaClient, Rol} from '@prisma/client';
 import {hashPassword} from '../src/utils/password';
 import {primerDiaDelMesActual, proximaFecha} from '../src/utils/fechas';
 
@@ -72,7 +72,7 @@ const seedDemo = async () => {
     }
 
     // [nombre, cupo máximo, planes que la incluyen]
-    const actividades = [];
+    const actividades: Actividad[] = [];
     for (const [nombre, cupoMaximo, incluidaEn] of [
         ['Cross Functional', 20, [0, 1]],
         ['Cross Functional Matutino', 20, [0, 1]],
@@ -166,6 +166,18 @@ const seedDemo = async () => {
                 idClase: clases[clase].idClase,
                 fechaClase: proximaFecha(clases[clase].diaSemana),
             },
+        });
+    }
+
+    // [nombre, tipo, estado, actividades que la usan]
+    for (const [nombre, tipo, estado, usadaEn] of [
+        ['Bicicleta de spinning', 'Cardio', 'DISPONIBLE', [3, 4]],
+        ['Cinta de correr', 'Cardio', 'DISPONIBLE', [0, 1]],
+        ['Rack de sentadillas', 'Fuerza', 'DISPONIBLE', [5]],
+        ['Remo', 'Cardio', 'REPARACION', []],
+    ] as const) {
+        await prisma.maquina.create({
+            data: {nombre, tipo, estado, actividades: {connect: usadaEn.map((a) => ({id: actividades[a].id}))}},
         });
     }
 };
