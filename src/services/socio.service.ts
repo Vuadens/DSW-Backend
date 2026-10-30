@@ -70,10 +70,12 @@ export async function getSociosByPlan(planId: number, actor: Actor) {
         throw new HttpError(403, "No puede acceder al listado de socios por plan");
     }
     const socios = await socioRepository.findAllByPlan(planId, primerDiaDelMesActual());
-    return socios.map(({ cuotas, ...socio }) => ({
-        ...socio,
-        estadoCuota: cuotas.length > 0 ? 'AL_DIA' : 'ADEUDA',
-    }));
+    // El estado de la cuota solo lo ve el administrador.
+    return socios.map(({ cuotas, ...socio }) =>
+        actor.rol === Rol.ADMINISTRADOR
+            ? { ...socio, estadoCuota: cuotas.length > 0 ? 'AL_DIA' : 'ADEUDA' }
+            : socio
+    );
 }
 
 export async function getSocioDetalle(id: number, actor?: Actor) {
