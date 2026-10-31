@@ -6,4 +6,5 @@ import { registrarCobroSchema } from '../../schemas/cuota.schema';
 
 export const cuotaRouter = Router();
 
+cuotaRouter.get('/', authorize('ADMINISTRADOR', 'SOCIO'), cuotaController.listar);
 cuotaRouter.post('/', authorize('ADMINISTRADOR'), validate(registrarCobroSchema), cuotaController.registrarCobro);
