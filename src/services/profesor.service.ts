@@ -2,10 +2,11 @@ import * as ProfesorRepository from '../repositories/profesor.repository';
 import { HttpError } from '../utils/http-error';
 import { Rol } from '@prisma/client';
 import { Actor, esPropietarioProfesor } from './authorization.service';
-import { validarDniUnico } from './persona.service';
+import { guardarEmail, nuevaCuenta, validarDniUnico, validarEmailUnico } from './persona.service';
 import { PersonaInput } from '../schemas/persona.schema';
 
 export type CrearProfesorData = PersonaInput & {
+  email: string;
   cargo: string;
 };
 
@@ -30,14 +31,16 @@ export const obtenerProfesorPorId = async (id: number, actor?: Actor) => {
   return profesor;
 };
 
-export const crearProfesor = async (data: CrearProfesorData) => {
+export const crearProfesor = async ({ email, ...data }: CrearProfesorData) => {
   await validarDniUnico(data.dni);
-  return ProfesorRepository.crearProfesor(data);
+  await validarEmailUnico(email);
+  return ProfesorRepository.crearProfesor(data, await nuevaCuenta(email, data.dni, Rol.PROFESOR));
 };
 
-export const actualizarProfesor = async (id: number, data: ActualizarProfesorData, actor: Actor) => {
-  await obtenerProfesorPorId(id, actor);
+export const actualizarProfesor = async (id: number, { email, ...data }: ActualizarProfesorData, actor: Actor) => {
+  const profesor = await obtenerProfesorPorId(id, actor);
   if (data.dni !== undefined) await validarDniUnico(data.dni, id);
+  if (email !== undefined) await guardarEmail(id, email, data.dni ?? profesor.persona.dni, Rol.PROFESOR);
   const updateData = {...data};
   if (actor.rol === Rol.PROFESOR) {
     delete updateData.cargo;

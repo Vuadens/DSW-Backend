@@ -1,7 +1,8 @@
+import { Rol } from '@prisma/client';
 import * as AdministradorRepository from '../repositories/administrador.repository';
 import { HttpError } from '../utils/http-error';
-import { validarDniUnico } from './persona.service';
-import { PersonaInput } from '../schemas/persona.schema';
+import { guardarEmail, nuevaCuenta, validarDniUnico, validarEmailUnico } from './persona.service';
+import { AdministradorInput } from '../schemas/administrador.schema';
 
 export const obtenerAdministradores = async () => {
   return AdministradorRepository.obtenerAdministradores();
@@ -15,14 +16,16 @@ export const obtenerAdministradorPorId = async (id: number) => {
   return administrador;
 };
 
-export const crearAdministrador = async (data: PersonaInput) => {
+export const crearAdministrador = async ({ email, ...data }: AdministradorInput) => {
   await validarDniUnico(data.dni);
-  return AdministradorRepository.crearAdministrador(data);
+  await validarEmailUnico(email);
+  return AdministradorRepository.crearAdministrador(data, await nuevaCuenta(email, data.dni, Rol.ADMINISTRADOR));
 };
 
-export const actualizarAdministrador = async (id: number, data: Partial<PersonaInput>) => {
-  await obtenerAdministradorPorId(id);
+export const actualizarAdministrador = async (id: number, { email, ...data }: Partial<AdministradorInput>) => {
+  const administrador = await obtenerAdministradorPorId(id);
   if (data.dni !== undefined) await validarDniUnico(data.dni, id);
+  if (email !== undefined) await guardarEmail(id, email, data.dni ?? administrador.persona.dni, Rol.ADMINISTRADOR);
   return AdministradorRepository.actualizarAdministrador(id, data);
 };
 

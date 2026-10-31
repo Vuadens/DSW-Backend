@@ -1,8 +1,9 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '../config/prisma';
 import { PersonaInput } from '../schemas/persona.schema';
 import * as PersonaRepository from './persona.repository';
 
-const incluir = { persona: true } as const;
+const incluir = { persona: { include: { usuario: { select: { email: true } } } } } as const;
 
 export const obtenerAdministradores = async () => {
   return await prisma.administrador.findMany({ include: incluir });
@@ -15,9 +16,12 @@ export const obtenerAdministradorPorId = async (id: number) => {
   });
 };
 
-export const crearAdministrador = async (data: PersonaInput) => {
+export const crearAdministrador = async (
+  data: PersonaInput,
+  cuenta: Prisma.UsuarioCreateWithoutPersonaInput
+) => {
   return await prisma.administrador.create({
-    data: { persona: { create: data } },
+    data: { persona: { create: { ...data, usuario: { create: cuenta } } } },
     include: incluir
   });
 };

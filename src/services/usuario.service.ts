@@ -2,6 +2,7 @@ import {Prisma, Rol} from '@prisma/client';
 import {usuarioRepository} from '../repositories/usuario.repository';
 import {CreateUsuarioInput, UpdateUsuarioInput} from '../schemas/usuario.schema';
 import {hashPassword} from '../utils/password';
+import {nuevaCuenta} from './persona.service';
 import {HttpError} from '../utils/http-error';
 import * as personaRepository from '../repositories/persona.repository';
 
@@ -18,6 +19,7 @@ const validarPersona = async (personaId: number, rol: Rol, idUsuarioActual?: num
         [Rol.ADMINISTRADOR]: persona.administrador !== null,
     }[rol];
     if (!cumpleRol) throw new HttpError(400, `La persona no esta registrada como ${rol}`);
+    return persona;
 };
 
 const duplicateError = (error: unknown) => {
@@ -39,14 +41,12 @@ export const usuarioService = {
     create: async (data: CreateUsuarioInput) => {
         const existente = await usuarioRepository.findByEmail(data.email);
         if (existente) throw new HttpError(409, 'Ya existe un usuario con ese email');
-        await validarPersona(data.personaId, data.rol);
+        const persona = await validarPersona(data.personaId, data.rol);
 
         try {
             return await usuarioRepository.create({
-                email: data.email,
+                ...(await nuevaCuenta(data.email, persona.dni, data.rol)),
                 usuario: data.usuario,
-                passwordHash: await hashPassword(data.password),
-                rol: data.rol,
                 persona: {connect: {idPersona: data.personaId}},
             });
         } catch (error) {

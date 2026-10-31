@@ -1,7 +1,8 @@
 import { z } from 'zod';
-import { personaSchema } from './persona.schema';
+import { emailSchema, personaSchema } from './persona.schema';
 
 export const createSocioSchema = personaSchema.extend({
+  email: emailSchema,
   fechaAlta: z.coerce.date().optional(),
   fechaBaja: z.coerce.date().nullable().optional(),
   planId: z.number({
@@ -11,6 +12,9 @@ export const createSocioSchema = personaSchema.extend({
 });
 
 export const updateSocioSchema = createSocioSchema.partial();
+
+// Alta pública: el sistema completa la fecha de alta y el socio no puede fijar su baja.
+export const registroSocioSchema = createSocioSchema.omit({ fechaAlta: true, fechaBaja: true });
 
 export const socioIdSchema = z.object({
   id: z.coerce.number().int().positive('El id debe ser un entero positivo'),

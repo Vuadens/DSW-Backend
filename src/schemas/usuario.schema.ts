@@ -1,18 +1,17 @@
 import {Rol} from '@prisma/client';
 import {z} from 'zod';
+import {emailSchema} from './persona.schema';
 
-const email = z.string().trim().toLowerCase().email();
-
+// La contraseña inicial no se recibe: la asigna el sistema a partir del DNI.
 export const createUsuarioSchema = z.object({
-    email,
+    email: emailSchema,
     usuario: z.string().min(3).optional(),
-    password: z.string().min(8),
     rol: z.nativeEnum(Rol),
     personaId: z.number().int().positive(),
 });
 
 export const updateUsuarioSchema = z.object({
-    email: email.optional(),
+    email: emailSchema.optional(),
     usuario: z.string().min(3).optional(),
     password: z.string().min(8).optional(),
     rol: z.nativeEnum(Rol).optional(),

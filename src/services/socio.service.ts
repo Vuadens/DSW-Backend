@@ -5,7 +5,7 @@ import { Rol } from '@prisma/client';
 import { Actor, esPropietarioSocio } from './authorization.service';
 import { hoy, primerDiaDelMesActual } from '../utils/fechas';
 import { estadoDeCuotas } from './cuota.service';
-import { validarDniUnico } from './persona.service';
+import { guardarEmail, nuevaCuenta, validarDniUnico, validarEmailUnico } from './persona.service';
 import { CreateSocioInput, UpdateSocioInput } from '../schemas/socio.schema';
 
 export async function getAllSocios(actor: Actor) {
@@ -26,10 +26,11 @@ export async function getSocioById(id: number, actor?: Actor) {
   return socio;
 }
 
-export async function createSocio(data: CreateSocioInput) {
+export async function createSocio({ email, ...data }: CreateSocioInput) {
   await validarDniUnico(data.dni);
+  await validarEmailUnico(email);
   await validarPlanExistente(data.planId);
-  return await socioRepository.create(data);
+  return await socioRepository.create(data, await nuevaCuenta(email, data.dni, Rol.SOCIO));
 }
 
 const validarPlanExistente = async (planId: number) => {
@@ -41,12 +42,13 @@ const validarPlanExistente = async (planId: number) => {
 
 export async function updateSocio(
   id: number,
-  data: UpdateSocioInput,
+  { email, ...data }: UpdateSocioInput,
   actor?: Actor
 ) {
-  await getSocioById(id);
+  const socio = await getSocioById(id);
   if (data.dni !== undefined) await validarDniUnico(data.dni, id);
   if (data.planId !== undefined) await validarPlanExistente(data.planId);
+  if (email !== undefined) await guardarEmail(id, email, data.dni ?? socio.persona.dni, Rol.SOCIO);
 
   const socioActualizado = await socioRepository.update(id, data);
 
