@@ -1,12 +1,12 @@
 import {NextFunction, Request, Response} from 'express';
 import {Rol} from '@prisma/client';
-import {verifyToken} from '../../utils/jwt';
+import {AuthTokenPayload, verifyToken} from '../../utils/jwt';
 import {HttpError} from '../../utils/http-error';
 
 declare global {
     namespace Express {
         interface Request {
-            user?: { id: number; rol: Rol; personaId: number };
+            user?: AuthTokenPayload;
         }
     }
 }
@@ -34,6 +34,8 @@ export const optionalAuthenticate = (req: Request, res: Response, next: NextFunc
 
 export const authorize = (...roles: Rol[]) => (req: Request, _res: Response, next: NextFunction) => {
     if (!req.user) return next(new HttpError(401, 'No autenticado'));
+    // Con la contraseña inicial solo se puede consultar el perfil y cambiarla.
+    if (req.user.debeCambiarPassword) return next(new HttpError(403, 'Debe cambiar la contraseña'));
     if (!roles.includes(req.user.rol)) return next(new HttpError(403, 'No autorizado'));
     next();
 };

@@ -1,7 +1,9 @@
+import { Rol } from '@prisma/client';
 import { cuotaRepository } from '../repositories/cuota.repository';
 import { RegistrarCobroInput } from '../schemas/cuota.schema';
 import { HttpError } from '../utils/http-error';
 import { mesDesdeTexto, primerDiaDelMesActual } from '../utils/fechas';
+import { Actor } from './authorization.service';
 
 export function estadoDeCuotas(cuotas: { mesAnio: Date }[], ahora: Date = new Date()) {
     const mesActual = primerDiaDelMesActual(ahora);
@@ -22,6 +24,10 @@ export function estadoDeCuotas(cuotas: { mesAnio: Date }[], ahora: Date = new Da
 }
 
 export const cuotaService = {
+    // El administrador ve todas las cuotas; el socio, solo las propias.
+    listar: (actor: Actor) =>
+        cuotaRepository.findAll(actor.rol === Rol.SOCIO ? actor.personaId : undefined),
+
     registrarCobro: async ({ socioId, mes }: RegistrarCobroInput) => {
         const socio = await cuotaRepository.findSocioConPlan(socioId);
 

@@ -1,10 +1,10 @@
-import { EstadoInscripcion } from "@prisma/client";
+import { EstadoInscripcion, Prisma } from "@prisma/client";
 import { prisma } from "../config/prisma";
 import { PersonaInput } from "../schemas/persona.schema";
 import { CreateSocioInput, UpdateSocioInput } from "../schemas/socio.schema";
 import * as PersonaRepository from "./persona.repository";
 
-const incluir = { persona: true } as const;
+const incluir = { persona: { include: { usuario: { select: { email: true } } } } } as const;
 
 export async function findAll() {
     return await prisma.socio.findMany({ include: incluir });
@@ -19,19 +19,19 @@ export async function findById(id: number) {
     });
 }
 
-export async function create(data: CreateSocioInput) {
+export async function create(data: Omit<CreateSocioInput, 'email'>, cuenta: Prisma.UsuarioCreateWithoutPersonaInput) {
     const { persona, resto: { planId, ...resto } } = PersonaRepository.separarPersona(data);
     return await prisma.socio.create({
         data: {
             ...resto,
             plan: { connect: { idPlan: planId } },
-            persona: { create: persona as PersonaInput }
+            persona: { create: { ...(persona as PersonaInput), usuario: { create: cuenta } } }
         },
         include: incluir
     });
 }
 
-export async function update(id: number, data: UpdateSocioInput) {
+export async function update(id: number, data: Omit<UpdateSocioInput, 'email'>) {
     const { persona, resto: { planId, ...resto } } = PersonaRepository.separarPersona(data);
     return await prisma.socio.update({
         where: {

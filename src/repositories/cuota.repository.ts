@@ -2,6 +2,12 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '../config/prisma';
 
 export const cuotaRepository = {
+  findAll: (socioId?: number) =>
+    prisma.cuota.findMany({
+      where: { socioId },
+      orderBy: { mesAnio: 'desc' },
+    }),
+
   findSocioConPlan: (idSocio: number) =>
     prisma.socio.findUnique({
       where: { idPersona: idSocio },

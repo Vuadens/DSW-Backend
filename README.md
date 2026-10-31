@@ -56,6 +56,16 @@ Además, `nombre`, `apellido`, `DNI`, `telefono` y `fecha_nac` no se eliminaron 
 - **Inscripcion**: es una reserva para una fecha puntual (`fechaClase`), con `estado`
   (`CONFIRMADA` / `CANCELADA`, baja lógica) y `asistio`.
 
+## Cuentas de acceso
+
+Toda persona nueva (socio, profesor o administrador) recibe su `Usuario` al crearse, por lo
+que el alta pide también un `email`. Eso aplica al alta del administrador y al registro público
+`POST /api/auth/registro` (datos de la persona, `email` y `planId`).
+
+La contraseña inicial son los **últimos 6 dígitos del DNI**. Hasta cambiarla con
+`POST /api/auth/cambiar-password` (`{ passwordActual, passwordNueva }`, que devuelve un token nuevo)
+las rutas protegidas responden 403. Las cuentas previas a este cambio no están alcanzadas.
+
 ## Puesta en marcha local
 
 ```bash

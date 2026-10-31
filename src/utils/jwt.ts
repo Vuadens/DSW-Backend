@@ -6,14 +6,16 @@ export type AuthTokenPayload = {
     id: number;
     rol: Rol;
     personaId: number;
+    debeCambiarPassword: boolean;
 };
 
-export const signToken = ({sub, rol, personaId}: {
+export const signToken = ({sub, rol, personaId, debeCambiarPassword}: {
     sub: number;
     rol: Rol;
     personaId: number;
+    debeCambiarPassword: boolean;
 }) =>
-    jwt.sign({rol, personaId}, env.jwtSecret, {
+    jwt.sign({rol, personaId, debeCambiarPassword}, env.jwtSecret, {
         subject: String(sub),
         expiresIn: env.jwtExpiresIn as SignOptions['expiresIn'],
     });
@@ -36,5 +38,10 @@ export const verifyToken = (token: string): AuthTokenPayload => {
         throw new Error('Token inválido');
     }
 
-    return {id, rol: payload.rol as Rol, personaId: payload.personaId};
+    return {
+        id,
+        rol: payload.rol as Rol,
+        personaId: payload.personaId,
+        debeCambiarPassword: payload.debeCambiarPassword === true,
+    };
 };

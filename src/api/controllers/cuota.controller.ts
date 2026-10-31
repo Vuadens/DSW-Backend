@@ -2,6 +2,13 @@ import { NextFunction, Request, Response } from 'express';
 import { cuotaService } from '../../services/cuota.service';
 
 export const cuotaController = {
+  listar: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      res.json(await cuotaService.listar(req.user!));
+    } catch (err) {
+      next(err);
+    }
+  },
   registrarCobro: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const cuota = await cuotaService.registrarCobro(req.body);

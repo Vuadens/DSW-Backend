@@ -1,8 +1,12 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '../config/prisma';
 import { PersonaInput } from '../schemas/persona.schema';
 import * as PersonaRepository from './persona.repository';
 
-const incluir = { persona: true, turnos: true } as const;
+const incluir = {
+  persona: { include: { usuario: { select: { email: true } } } },
+  turnos: true
+} as const;
 
 export const obtenerProfesores = async () => {
   return await prisma.profesor.findMany({ include: incluir });
@@ -15,10 +19,16 @@ export const obtenerProfesorPorId = async (id: number) => {
   });
 };
 
-export const crearProfesor = async (data: PersonaInput & { cargo: string }) => {
+export const crearProfesor = async (
+  data: PersonaInput & { cargo: string },
+  cuenta: Prisma.UsuarioCreateWithoutPersonaInput
+) => {
   const { persona, resto } = PersonaRepository.separarPersona(data);
   return await prisma.profesor.create({
-    data: { cargo: resto.cargo, persona: { create: persona as PersonaInput } },
+    data: {
+      cargo: resto.cargo,
+      persona: { create: { ...(persona as PersonaInput), usuario: { create: cuenta } } }
+    },
     include: incluir
   });
 };

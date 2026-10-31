@@ -1,4 +1,4 @@
-import {Prisma, Rol} from '@prisma/client';
+import {Prisma} from '@prisma/client';
 import {prisma} from '../config/prisma';
 
 const publicSelect = {
@@ -6,6 +6,7 @@ const publicSelect = {
     email: true,
     usuario: true,
     rol: true,
+    debeCambiarPassword: true,
     activo: true,
     createdAt: true,
     updatedAt: true,
@@ -17,6 +18,12 @@ export const usuarioRepository = {
 
     findById: (idUsuario: number) =>
         prisma.usuario.findUnique({where: {idUsuario}, select: publicSelect}),
+
+    findConPassword: (idUsuario: number) =>
+        prisma.usuario.findUnique({
+            where: {idUsuario},
+            select: {...publicSelect, passwordHash: true},
+        }),
 
     findByEmail: (email: string) =>
         prisma.usuario.findUnique({
@@ -44,6 +51,14 @@ export const usuarioRepository = {
 
     update: (idUsuario: number, data: Prisma.UsuarioUpdateInput) =>
         prisma.usuario.update({where: {idUsuario}, data, select: publicSelect}),
+
+    // Actualiza el email de la cuenta de la persona; si no tiene cuenta, se la crea.
+    guardarEmail: (personaId: number, email: string, cuenta: Prisma.UsuarioCreateWithoutPersonaInput) =>
+        prisma.usuario.upsert({
+            where: {personaId},
+            update: {email},
+            create: {...cuenta, persona: {connect: {idPersona: personaId}}},
+        }),
 
     remove: (idUsuario: number) => prisma.usuario.delete({where: {idUsuario}}),
 };

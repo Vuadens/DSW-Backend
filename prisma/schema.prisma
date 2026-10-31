@@ -168,6 +168,8 @@ model Usuario {
   email       String   @unique
   usuario     String?
   passwordHash String
+  // La contraseña inicial la asigna el sistema: hay que cambiarla para operar.
+  debeCambiarPassword Boolean @default(false)
   rol         Rol
   activo      Boolean  @default(true)
   createdAt   DateTime @default(now())
