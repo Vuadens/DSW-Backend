@@ -19,6 +19,7 @@
 ## Contenido
 
 - [Sobre el proyecto](#sobre-el-proyecto)
+- [Cómo lo desarrollamos](#cómo-lo-desarrollamos)
 - [Arquitectura](#arquitectura)
 - [Instalación desde cero](#instalación-desde-cero)
 - [Actualizar una instalación existente](#actualizar-una-instalación-existente)
@@ -35,13 +36,27 @@
 
 ## Sobre el proyecto
 
-Hades nació como trabajo práctico de **Desarrollo de Software** en la UTN Facultad Regional Rosario. La [consigna](https://github.com/Vuadens/Hades-Gym-Manager) pide una aplicación full stack con frontend y backend independientes, comunicados por una API. El grupo eligió un problema concreto: centralizar la administración de un gimnasio, con control de cupos, cuotas y actividades.
+Hades es nuestro trabajo práctico de **Desarrollo de Software** en la UTN Facultad Regional Rosario. La [consigna](https://github.com/Vuadens/Hades-Gym-Manager) nos pedía una aplicación full stack con frontend y backend independientes, comunicados por una API. Elegimos un problema concreto: centralizar la administración de un gimnasio, con control de cupos, cuotas y actividades.
 
-Este repositorio contiene la API y el esquema de la base de datos. La interfaz está en [DSW-Frontend](https://github.com/Vuadens/DSW-Frontend).
+En este repositorio están la API y el esquema de la base de datos. La interfaz está en [DSW-Frontend](https://github.com/Vuadens/DSW-Frontend).
+
+## Cómo lo desarrollamos
+
+**Empezamos por los CRUD.** Configuramos Prisma y construimos primero Plan, Profesor, Socio y Actividad. Después sumamos Clase e Inscripción, que dependen de esas entidades, y más tarde Turno y el registro de cuotas.
+
+**Volvimos al modelo de dominio.** Al contrastar el código con el diagrama, vimos que los datos personales estaban repetidos entre socios y profesores. Los llevamos a `Persona`, con una tabla por subtipo y clave primaria compartida, para que cada persona tenga un único id en todo el sistema.
+
+**Separamos identidad y credenciales.** El email pasó a `Usuario`, como indica el modelo, y permitimos ingresar con email o DNI. El nombre de usuario quedó solo como nombre visible, para no sumar una credencial más.
+
+**Replanteamos qué es una inscripción.** Una clase se repite cada semana, así que un cupo total no alcanzaba. Convertimos la inscripción en una reserva para una fecha puntual, con ocupación propia, cancelación por baja lógica y asistencia.
+
+**Dejamos las reglas en la API.** El frontend anticipa errores para dar una respuesta rápida, pero acá se valida cada regla. Por eso, una reserva inválida se rechaza aunque alguien saltee la interfaz.
+
+**Cuidamos el primer acceso.** Cada alta crea su cuenta con una contraseña inicial, y obligamos a cambiarla desde el backend, no solo desde la pantalla.
 
 ## Arquitectura
 
-El código se organiza en capas: cada pedido atraviesa la validación y los permisos antes de llegar a la lógica de negocio y a la persistencia.
+Organizamos el código en capas: cada pedido atraviesa la validación y los permisos antes de llegar a la lógica de negocio y a la persistencia.
 
 ```mermaid
 flowchart LR
@@ -67,7 +82,7 @@ flowchart LR
 
 ### Requisitos
 
-- [Node.js](https://nodejs.org). El proyecto se probó con la versión 24.
+- [Node.js](https://nodejs.org). Lo probamos con la versión 24.
 - [Git](https://git-scm.com)
 - [MySQL](https://dev.mysql.com/downloads/) en ejecución
 
@@ -206,11 +221,11 @@ Corré Prisma dentro de esta carpeta y después de `npm install`. Fuera de ella,
 | `npm run seed` | Carga los datos iniciales |
 | `npm run prisma:generate` | Genera el cliente de Prisma |
 | `npm run prisma:migrate` | Crea y aplica una migración en desarrollo |
-| `npm test` | Pruebas con Jest. Todavía no hay pruebas en el repositorio |
+| `npm test` | Pruebas con Jest. Todavía no escribimos pruebas |
 
 ## Datos de demo
 
-El seed se puede repetir sin duplicar datos:
+Armamos un seed para que el sistema no arranque vacío. Se puede repetir sin duplicar datos:
 
 - Crea el administrador inicial (`ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_DNI`) o le reemplaza el email provisorio.
 - Precarga los 21 turnos de trabajo: mañana (07–13), tarde (13–19) y noche (19–23) para cada día de la semana.
@@ -329,6 +344,8 @@ Los errores responden con un mensaje en formato JSON:
 
 ## Reglas de negocio
 
+Estas son las reglas que definimos para cada operación. Las valida la API, sin depender de la interfaz.
+
 **Inscripciones**
 
 - El socio tiene que estar activo, tener la cuota del mes paga y un plan que incluya la actividad.
@@ -357,7 +374,7 @@ Los errores responden con un mensaje en formato JSON:
 
 ### Herencia de Persona
 
-`Persona` es la superclase de `Profesor`, `Socio` y `Administrador`. Se implementa
+`Persona` es la superclase de `Profesor`, `Socio` y `Administrador`. La implementamos
 con una tabla por subtipo y **clave primaria compartida**: la PK de cada subtipo es
 `idPersona`, que a su vez es FK a `Persona`. Cada persona tiene un único id en todo
 el sistema, así que `/profesores/:id`, `/socios/:id` y `/administradores/:id` usan
@@ -366,23 +383,23 @@ lleva ese `personaId`.
 
 ### Diferencias entre el modelo de dominio y el código
 
-Esta sección registra en qué se aparta la implementación del modelo de dominio.
-Mantenerla actualizada cuando cambie el diagrama o el `schema.prisma`.
+Acá registramos en qué nos apartamos del modelo de dominio al implementarlo.
+La actualizamos cada vez que cambia el diagrama o el `schema.prisma`.
 
-#### Eliminado del código para alinearlo al modelo de dominio
+#### Lo que quitamos para alinearnos al modelo
 
-| Qué se quitó | Dónde estaba | Migración |
+| Qué quitamos | Dónde estaba | Migración |
 |---|---|---|
 | Relación "supervisa" entre profesores (`supervisorId`) y los permisos de supervisor | `Profesor` | `20261029210000_quitar_supervisor_profesor` |
 | `email` y `direccion` (los datos cargados se perdieron) | `Socio` | `20261029210100_quitar_email_direccion_socio` |
 | `idProfesor` / `idSocio` como ids propios: ahora la PK es `idPersona` | `Profesor`, `Socio` | `20261029210200_persona_modelo_dominio` |
 | `socioId` / `profesorId`: reemplazados por `personaId` | `Usuario` | `20261029210200_persona_modelo_dominio` |
 
-Además, `nombre`, `apellido`, `DNI`, `telefono` y `fecha_nac` no se eliminaron sino que
-**se movieron** de `Socio`/`Profesor` a `Persona` (como `dni`, `nombre`, `apellido`,
+Además, `nombre`, `apellido`, `DNI`, `telefono` y `fecha_nac` no los eliminamos: los
+**movimos** de `Socio`/`Profesor` a `Persona` (como `dni`, `nombre`, `apellido`,
 `telefono`, `fechaNac`), y `Socio.fecha_baja` pasó a llamarse `fechaBaja`.
 
-#### En el modelo de dominio pero todavía no implementado
+#### Lo que todavía no implementamos
 
 - **HistoricoSueldo** (`fechaDesde`, `valor`) y su relación con `Profesor` (1 — 1..*).
 - **DetalleCuota** (`concepto`, `subtotal`, `monto`) y su relación con `Cuota` (1..* — 1).
@@ -392,7 +409,7 @@ Además, `nombre`, `apellido`, `DNI`, `telefono` y `fecha_nac` no se eliminaron 
 - Relación **Clase se dicta en Turno** (0..* — 1).
 - `Actividad.tipo`.
 
-#### En el código pero no en el modelo de dominio
+#### Lo que agregamos fuera del modelo
 
 - **Usuario**: `username` se llama `usuario` y es solo un nombre visible, opcional y no
   único; se accede con `email` o con el DNI de la persona. La fecha de alta se llama
@@ -441,6 +458,8 @@ Además, `nombre`, `apellido`, `DNI`, `telefono` y `fecha_nac` no se eliminaron 
 | Un socio al día no puede reservar | Cambió el mes desde el seed: registrá su cobro o recreá los datos |
 
 ## Equipo
+
+Desarrollamos Hades entre cuatro:
 
 - Juan Manuel Hidalgo Alcain
 - Joaquín Emiliano Maza
