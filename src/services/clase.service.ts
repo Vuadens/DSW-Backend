@@ -48,7 +48,9 @@ export const obtenerClasePorId = async (id: number, fecha?: Date) => {
 
 export const crearClase = async (data: CrearClaseData) => {
   await validarReglas(data);
-  return ClaseRepository.crearClase(data);
+  const clase = await ClaseRepository.crearClase(data);
+  const [conDatos] = await conOcupacion([clase]);
+  return conDatos;
 };
 
 export const actualizarClase = async (id: number, data: ActualizarClaseData) => {
@@ -72,7 +74,9 @@ export const actualizarClase = async (id: number, data: ActualizarClaseData) => 
     }
   }
   await validarReglas(resultado, id);
-  return ClaseRepository.actualizarClase(id, data);
+  const clase = await ClaseRepository.actualizarClase(id, data);
+  const [conDatos] = await conOcupacion([clase]);
+  return conDatos;
 };
 
 export const eliminarClase = async (id: number) => {
