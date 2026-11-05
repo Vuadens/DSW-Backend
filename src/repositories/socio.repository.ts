@@ -99,7 +99,7 @@ export async function findByIdConDetalle(id: number) {
     return await prisma.socio.findUnique({
         where: { idPersona: id },
         include: {
-            persona: true,
+            persona: { include: { usuario: { select: { email: true } } } },
             plan: true,
             cuotas: { orderBy: { mesAnio: 'desc' } },
         },
