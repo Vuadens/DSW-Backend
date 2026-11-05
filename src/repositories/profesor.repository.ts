@@ -48,10 +48,24 @@ export const actualizarProfesor = async (
   });
 };
 
-export const eliminarProfesor = async (id: number) => {
+// Baja lógica: se registra la fecha, se lo quita de sus turnos y se desactiva su cuenta.
+export const darDeBaja = async (id: number, fechaBaja: Date) => {
   const [profesor] = await prisma.$transaction([
-    prisma.profesor.delete({ where: { idPersona: id } }),
-    PersonaRepository.eliminarSiNoTieneRoles(id)
+    prisma.profesor.update({
+      where: { idPersona: id },
+      data: { fechaBaja, turnos: { set: [] } },
+      include: incluir
+    }),
+    prisma.usuario.updateMany({ where: { personaId: id }, data: { activo: false } })
+  ]);
+  return profesor;
+};
+
+// Reactivación: vuelve a operar y recupera el acceso. Los turnos se asignan de nuevo a mano.
+export const reactivar = async (id: number) => {
+  const [profesor] = await prisma.$transaction([
+    prisma.profesor.update({ where: { idPersona: id }, data: { fechaBaja: null }, include: incluir }),
+    prisma.usuario.updateMany({ where: { personaId: id }, data: { activo: true } })
   ]);
   return profesor;
 };

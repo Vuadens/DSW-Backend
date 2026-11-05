@@ -56,6 +56,9 @@ export const turnoService = {
     if (!profesor) {
       throw new HttpError(404, 'Profesor no encontrado');
     }
+    if (profesor.fechaBaja !== null) {
+      throw new HttpError(400, 'El profesor está dado de baja');
+    }
 
     return await turnoRepository.asignarProfesor(idTurno, idProfesor);
   },

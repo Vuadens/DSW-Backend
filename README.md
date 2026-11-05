@@ -54,6 +54,8 @@ En este repositorio están la API y el esquema de la base de datos. La interfaz 
 
 **Cuidamos el primer acceso.** Cada alta crea su cuenta con una contraseña inicial, y obligamos a cambiarla desde el backend, no solo desde la pantalla.
 
+**Corregimos lo que encontramos al probar.** Pasamos los profesores a baja lógica, cortamos el acceso de las cuentas dadas de baja en el momento y dejamos que el socio se dé de baja y cambie de plan por su cuenta. También fijamos el vencimiento de las cuotas el día 10, con la misma regla de mora en la API y en el frontend.
+
 ## Arquitectura
 
 Organizamos el código en capas: cada pedido atraviesa la validación y los permisos antes de llegar a la lógica de negocio y a la persistencia.
@@ -221,6 +223,7 @@ Corré Prisma dentro de esta carpeta y después de `npm install`. Fuera de ella,
 | `npm run seed` | Carga los datos iniciales |
 | `npm run prisma:generate` | Genera el cliente de Prisma |
 | `npm run prisma:migrate` | Crea y aplica una migración en desarrollo |
+| `npm run der` | Genera el [DER](docs/der.md) a partir de `prisma/schema.prisma`. Corré antes `npx prisma generate` |
 | `npm test` | Pruebas con Jest. Todavía no escribimos pruebas |
 
 ## Datos de demo
@@ -238,9 +241,13 @@ Las cuentas usan la contraseña `DEMO_PASSWORD`, y se puede ingresar con email o
 | Profesor | `marcos.benitez@hadesgym.com` | `28450111` |
 | Profesor | `sofia.rossi@hadesgym.com` | `33120458` |
 | Socio al día | `lucas.fernandez@gmail.com` | `38450192` |
-| Socio que adeuda | `ignacio.sosa@outlook.com` | `36980112` |
+| Socio que adeuda la cuota del mes | `ignacio.sosa@outlook.com` | `36980112` |
 
-El resto de las cuentas está en `prisma/seed.ts`. Las cuotas de demo pertenecen al mes en que se corre el seed: al cambiar el mes, los socios pasan a adeudar la cuota.
+El resto de las cuentas está en `prisma/seed.ts`. Las cuotas de demo pertenecen al mes en que se corre el seed, y la fecha de alta de los socios es ese mismo día:
+
+- Si corrés el seed hasta el día 10, Ignacio y Julieta deben la cuota del mes: queda pendiente hasta el 10 y en mora desde el 11.
+- Si lo corrés después del 10, su primera cuota es la del mes siguiente, así que no deben nada.
+- Al cambiar el mes, los socios pasan a deber la cuota nueva, y desde el día 11 quedan en mora.
 
 ## Autenticación
 
@@ -289,8 +296,13 @@ Roles: **A** administrador, **P** profesor, **S** socio. Público significa que 
 | `POST` | `/socios` | A | Crear |
 | `GET` | `/socios/:id` | A, P, S | Detalle con plan, cuotas y estado |
 | `PATCH` `PUT` `DELETE` | `/socios/:id` | A | Modificar y eliminar |
+| `PATCH` | `/socios/:id/baja` | A, S | Dar de baja. El socio se da de baja a sí mismo con fecha de hoy; el admin puede enviar `{ "fechaBaja": "2026-11-05" }` |
+| `PATCH` | `/socios/:id/plan` | A, S | Cambiar de plan desde el mes siguiente: `{ "planId": 2 }`; `{ "planId": null }` cancela el cambio |
+| `PATCH` | `/socios/:id/reactivar` | A | Reactivar un socio dado de baja |
 | `GET` | `/profesores` `/profesores/:id` | A, P | Listar y consultar |
-| `POST` `DELETE` | `/profesores` `/profesores/:id` | A | Crear y eliminar |
+| `POST` | `/profesores` | A | Crear |
+| `DELETE` | `/profesores/:id` | A | Dar de baja (baja lógica) |
+| `PATCH` | `/profesores/:id/reactivar` | A | Reactivar un profesor dado de baja |
 | `PATCH` | `/profesores/:id` | A, P | Modificar |
 | `GET` `POST` | `/administradores` | A | Listar y crear |
 | `GET` `PATCH` `DELETE` | `/administradores/:id` | A | Consultar, modificar y eliminar |
@@ -336,7 +348,7 @@ Los errores responden con un mensaje en formato JSON:
 | Código | Significado |
 |---|---|
 | `400` | Datos inválidos o regla de negocio incumplida |
-| `401` | Sin sesión, o token inválido o vencido |
+| `401` | Sin sesión, token inválido o vencido, o cuenta desactivada |
 | `403` | Sin permiso, o contraseña inicial pendiente de cambio |
 | `404` | Recurso inexistente |
 | `409` | Conflicto, por ejemplo un valor repetido o registros relacionados |
@@ -348,7 +360,7 @@ Estas son las reglas que definimos para cada operación. Las valida la API, sin 
 
 **Inscripciones**
 
-- El socio tiene que estar activo, tener la cuota del mes paga y un plan que incluya la actividad.
+- El socio tiene que estar activo, no tener cuotas en mora y tener un plan que incluya la actividad.
 - La fecha tiene que coincidir con el día de la clase, y la clase no puede haber comenzado.
 - No se permite superar el cupo ni inscribir dos veces al mismo socio.
 - Las inscripciones se cancelan con baja lógica, antes de que empiece la clase.
@@ -357,20 +369,50 @@ Estas son las reglas que definimos para cada operación. Las valida la API, sin 
 **Clases**
 
 - Un profesor no puede dictar dos clases superpuestas.
+- No se puede asignar una clase ni un turno a un profesor dado de baja.
 - El cupo no puede quedar por debajo de los inscriptos de una fecha próxima.
 
 **Cuotas**
 
 - Un mes se cobra una sola vez por socio, y no se pueden cobrar meses futuros.
 - El valor se toma del plan del socio al registrar el cobro.
+- La cuota de cada mes vence el día 10. Hasta ese día está pendiente; desde el 11, si no se pagó, queda en mora.
+- Se adeudan todos los meses impagos desde el alta. Si el socio se da de alta después del día 10, su primera cuota es la del mes siguiente.
+- El estado del socio es `AL_DIA` (no debe nada), `PENDIENTE` (debe solo meses que no vencieron) o `EN_MORA`.
 
 **Socios**
 
-- Al dar de baja a un socio, se cancelan sus reservas de hoy en adelante.
+- Al dar de baja a un socio, se cancelan sus reservas de hoy en adelante y se desactiva su cuenta.
+- La fecha de baja no puede ser futura ni anterior a la fecha de alta.
+- Al reactivarlo (quitarle la fecha de baja) recupera el acceso.
+- El profesor no ve a los socios dados de baja, ni en los listados ni en el detalle.
+- El socio puede elegir otro plan activo; el cambio rige desde el primer día del mes siguiente y se puede cancelar hasta entonces.
+- Al aplicarse el cambio se cancelan sus reservas desde ese día de actividades que el plan nuevo no incluye.
+
+**Personas**
+
+- La fecha de nacimiento no puede ser futura ni tener un año anterior a 1900.
+- El socio tiene que tener al menos 14 años y el profesor al menos 18.
+
+**Profesores**
+
+- La baja es lógica: se registra la fecha de baja, se lo quita de sus turnos y se desactiva su cuenta.
+- No se puede dar de baja a un profesor con clases asignadas.
+- Al reactivarlo recupera el acceso; los turnos se le asignan de nuevo.
+
+**Acceso**
+
+- Una cuenta desactivada no puede ingresar, y su token deja de servir en el momento.
 
 ## Modelo de dominio
 
-![Modelo de dominio](modelo-dominio.jpg)
+![Modelo de dominio](docs/modelo-dominio.svg)
+
+El diagrama se edita en [`docs/modelo-dominio.excalidraw`](docs/modelo-dominio.excalidraw): abrilo en
+[excalidraw.com](https://excalidraw.com) con *Abrir*, y al terminar exportalo como SVG sobre
+`docs/modelo-dominio.svg`. Las clases en gris y con borde punteado todavía no están implementadas.
+
+El diagrama de la base, generado a partir del schema, está en el [DER](docs/der.md).
 
 ### Herencia de Persona
 
@@ -385,6 +427,11 @@ lleva ese `personaId`.
 
 Acá registramos en qué nos apartamos del modelo de dominio al implementarlo.
 La actualizamos cada vez que cambia el diagrama o el `schema.prisma`.
+
+En noviembre de 2026 actualizamos el diagrama para alinearlo con el código: `Inscripcion` pasó a ser una
+reserva por fecha con estado y asistencia, el horario quedó en `Clase`, `Turno` se relaciona con
+`Profesor`, y sumamos los atributos de `Usuario`, `Plan` y `Actividad`, la baja de `Profesor` y el cambio
+de plan del `Socio`.
 
 #### Lo que quitamos para alinearnos al modelo
 
@@ -401,28 +448,20 @@ Además, `nombre`, `apellido`, `DNI`, `telefono` y `fecha_nac` no los eliminamos
 
 #### Lo que todavía no implementamos
 
+Están en el diagrama, en gris, y por ahora solo existen en el modo demo del frontend:
+
 - **HistoricoSueldo** (`fechaDesde`, `valor`) y su relación con `Profesor` (1 — 1..*).
 - **DetalleCuota** (`concepto`, `subtotal`, `monto`) y su relación con `Cuota` (1..* — 1).
 - **Maquina** (`idMaquina`, `nombre`, `descripcion`, `tipo`, `estado`) y **Mantenimiento**
   (`fechaInicio`, `fechaFinEsperada`, `fechaFinReal`, `descripcion`).
 - **Material** (`idMaterial`, `descripcion`, `stock`).
-- Relación **Clase se dicta en Turno** (0..* — 1).
 - `Actividad.tipo`.
 
-#### Lo que agregamos fuera del modelo
+#### Lo que el código tiene y el diagrama omite
 
-- **Usuario**: `username` se llama `usuario` y es solo un nombre visible, opcional y no
-  único; se accede con `email` o con el DNI de la persona. La fecha de alta se llama
-  `createdAt` (en el modelo, `fechaCreacion`); además tiene `updatedAt`.
-- **Plan**: `descripcion`, `duracionMeses`, `activo`, `createdAt`, `updatedAt`.
-- **Actividad**: `nombre`, `cupoMaximo`, `creadaEn`; la PK se llama `id` (en el modelo,
-  `idActividad`).
-- **Clase**: `diaSemana`, `horaDesde`, `horaHasta`. En el modelo el horario está en `Turno`;
-  en el código cada clase guarda su propio horario.
-- **Turno**: `nombre`, `activo` y una relación muchos a muchos **Turno–Profesor** (turnos de
-  trabajo del personal). En el modelo `Turno` se relaciona con `Clase`, no con `Profesor`.
-- **Inscripcion**: es una reserva para una fecha puntual (`fechaClase`), con `estado`
-  (`CONFIRMADA` / `CANCELADA`, baja lógica) y `asistio`.
+- Las claves foráneas (`planId`, `idProfesor`, `personaId`, etc.): en el diagrama son las asociaciones.
+- Los campos de auditoría `Usuario.updatedAt`, `Plan.createdAt`, `Plan.updatedAt` y `Actividad.creadaEn`.
+- Los valores de los enumerados (`Rol`, `DiaSemana`, `EstadoInscripcion`), que están en el [DER](docs/der.md).
 
 ## Estructura
 
@@ -440,6 +479,8 @@ Además, `nombre`, `apellido`, `DNI`, `telefono` y `fecha_nac` no los eliminamos
 │   ├── utils/           Fechas, JWT, contraseñas y errores
 │   ├── app.ts           Aplicación Express
 │   └── server.ts        Punto de entrada
+├── docs/                Modelo de dominio, DER y especificaciones
+├── scripts/             Generación del DER
 └── tests/               Pruebas unitarias y de integración
 ```
 
@@ -455,7 +496,9 @@ Además, `nombre`, `apellido`, `DNI`, `telefono` y `fecha_nac` no los eliminamos
 | `Unknown database` | Creá la base del paso 2 |
 | Falla una migración en una base vieja | Si no necesitás los datos, usá `npx prisma migrate reset` |
 | Las cuentas de demo no ingresan | El seed no las carga si la base ya tiene planes. Usá una base vacía |
-| Un socio al día no puede reservar | Cambió el mes desde el seed: registrá su cobro o recreá los datos |
+| Un socio no puede reservar por cuotas en mora | Desde el día 11 debe la cuota del mes: registrá su cobro o recreá los datos |
+| Después de recrear la base, la sesión se cierra con 401 | El token es de un usuario que ya no existe: volvé a ingresar |
+| `EPERM` al correr `npx prisma generate` en Windows | El servidor tiene tomado el motor de Prisma: frenalo, generá y volvé a iniciarlo |
 
 ## Equipo
 

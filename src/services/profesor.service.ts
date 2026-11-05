@@ -4,6 +4,7 @@ import { Rol } from '@prisma/client';
 import { Actor, esPropietarioProfesor } from './authorization.service';
 import { guardarEmail, nuevaCuenta, validarDniUnico, validarEmailUnico } from './persona.service';
 import { PersonaInput } from '../schemas/persona.schema';
+import { hoy } from '../utils/fechas';
 
 export type CrearProfesorData = PersonaInput & {
   email: string;
@@ -48,14 +49,25 @@ export const actualizarProfesor = async (id: number, { email, ...data }: Actuali
   return ProfesorRepository.actualizarProfesor(id, updateData);
 };
 
-export const eliminarProfesor = async (id: number) => {
-  await obtenerProfesorPorId(id);
+export const darDeBajaProfesor = async (id: number) => {
+  const profesor = await obtenerProfesorPorId(id);
+  if (profesor.fechaBaja !== null) {
+    throw new HttpError(409, 'El profesor ya está dado de baja');
+  }
   const cantidadClases = await ProfesorRepository.contarClasesAsignadas(id);
   if (cantidadClases > 0) {
     throw new HttpError(
       400,
-      `No se puede eliminar el profesor porque tiene ${cantidadClases} clase(s) asignada(s)`
+      `No se puede dar de baja al profesor porque tiene ${cantidadClases} clase(s) asignada(s)`
     );
   }
-  return ProfesorRepository.eliminarProfesor(id);
+  return ProfesorRepository.darDeBaja(id, hoy());
+};
+
+export const reactivarProfesor = async (id: number) => {
+  const profesor = await obtenerProfesorPorId(id);
+  if (profesor.fechaBaja === null) {
+    throw new HttpError(409, 'El profesor no está dado de baja');
+  }
+  return ProfesorRepository.reactivar(id);
 };

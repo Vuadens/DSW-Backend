@@ -6,8 +6,12 @@ import * as PersonaRepository from "./persona.repository";
 
 const incluir = { persona: { include: { usuario: { select: { email: true } } } } } as const;
 
-export async function findAll() {
-    return await prisma.socio.findMany({ include: incluir });
+// Con soloActivos se excluyen los socios dados de baja.
+export async function findAll(soloActivos = false) {
+    return await prisma.socio.findMany({
+        where: soloActivos ? { fechaBaja: null } : {},
+        include: incluir
+    });
 }
 
 export async function findById(id: number) {
@@ -72,25 +76,71 @@ export async function cancelarReservasFuturas(idSocio: number, desde: Date) {
   });
 }
 
-// Lo necesario para validar una reserva: actividades del plan y cuota del mes.
-export async function findParaReserva(id: number, mesActual: Date) {
+// Programa (o cancela, con null) el cambio de plan del socio.
+export async function programarCambioDePlan(id: number, planProximoId: number | null, planProximoDesde: Date | null) {
+    return await prisma.socio.update({
+        where: { idPersona: id },
+        data: { planProximoId, planProximoDesde },
+        include: incluir
+    });
+}
+
+// Aplica los cambios de plan cuya fecha ya llegó. Las reservas desde ese día de actividades
+// que el plan nuevo no incluye se cancelan.
+export async function aplicarCambiosDePlan(hasta: Date) {
+    const pendientes = await prisma.socio.findMany({
+        where: { planProximoDesde: { lte: hasta } },
+        select: { idPersona: true, planProximoId: true, planProximoDesde: true },
+    });
+    for (const { idPersona, planProximoId, planProximoDesde } of pendientes) {
+        const limpiar = { planProximoId: null, planProximoDesde: null };
+        // Si el plan elegido se borró, la FK dejó planProximoId en null: solo se descarta el cambio.
+        if (planProximoId === null) {
+            await prisma.socio.update({ where: { idPersona }, data: limpiar });
+            continue;
+        }
+        await prisma.$transaction([
+            prisma.socio.update({ where: { idPersona }, data: { planId: planProximoId, ...limpiar } }),
+            prisma.inscripcion.updateMany({
+                where: {
+                    idSocio: idPersona,
+                    estado: EstadoInscripcion.CONFIRMADA,
+                    fechaClase: { gte: planProximoDesde! },
+                    clase: { actividad: { planes: { none: { idPlan: planProximoId } } } },
+                },
+                data: { estado: EstadoInscripcion.CANCELADA },
+            }),
+        ]);
+    }
+}
+
+// Activa o desactiva la cuenta de acceso del socio (por ejemplo, al darlo de baja).
+export async function setCuentaActiva(idSocio: number, activo: boolean) {
+  return await prisma.usuario.updateMany({ where: { personaId: idSocio }, data: { activo } });
+}
+
+// Lo necesario para validar una reserva: actividades del plan y meses pagados (para la mora).
+export async function findParaReserva(id: number) {
     return await prisma.socio.findUnique({
         where: { idPersona: id },
         select: {
+            fechaAlta: true,
             fechaBaja: true,
             plan: { select: { actividades: { select: { id: true } } } },
-            cuotas: { where: { mesAnio: mesActual }, select: { idCuota: true } },
+            cuotas: { select: { mesAnio: true } },
         },
     });
 }
 
-export async function findAllByPlan(planId: number, mesActual: Date) {
+export async function findAllByPlan(planId: number, soloActivos = false) {
     return await prisma.socio.findMany({
-        where: { planId },
+        where: { planId, ...(soloActivos ? { fechaBaja: null } : {}) },
         select: {
             idPersona: true,
+            fechaAlta: true,
+            fechaBaja: true,
             persona: { select: { dni: true, nombre: true, apellido: true } },
-            cuotas: { where: { mesAnio: mesActual }, select: { idCuota: true } },
+            cuotas: { select: { mesAnio: true } },
         },
     });
 }

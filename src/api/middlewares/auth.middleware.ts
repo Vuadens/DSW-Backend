@@ -2,6 +2,7 @@ import {NextFunction, Request, Response} from 'express';
 import {Rol} from '@prisma/client';
 import {AuthTokenPayload, verifyToken} from '../../utils/jwt';
 import {HttpError} from '../../utils/http-error';
+import {usuarioRepository} from '../../repositories/usuario.repository';
 
 declare global {
     namespace Express {
@@ -11,18 +12,32 @@ declare global {
     }
 }
 
-export const authenticate = (req: Request, _res: Response, next: NextFunction) => {
+export const authenticate = async (req: Request, _res: Response, next: NextFunction) => {
     const header = req.header('Authorization');
     if (!header || !header.startsWith('Bearer ')) {
         return next(new HttpError(401, 'No autenticado'));
     }
 
+    let user: AuthTokenPayload;
     try {
-        req.user = verifyToken(header.slice(7));
-        next();
+        user = verifyToken(header.slice(7));
     } catch (_error) {
-        next(new HttpError(401, 'Token inválido o vencido'));
+        return next(new HttpError(401, 'Token inválido o vencido'));
     }
+
+    // Una cuenta desactivada (por ejemplo, un socio dado de baja) pierde el acceso
+    // en el momento, aunque su token todavía no haya vencido.
+    try {
+        const cuenta = await usuarioRepository.findById(user.id);
+        // Sin cuenta, el token es de un usuario que ya no existe (por ejemplo, tras recrear la base).
+        if (!cuenta) return next(new HttpError(401, 'Token inválido o vencido'));
+        if (!cuenta.activo) return next(new HttpError(401, 'La cuenta está desactivada'));
+    } catch (error) {
+        return next(error);
+    }
+
+    req.user = user;
+    next();
 };
 
 // Si viene token lo valida y carga req.user; si no viene, deja pasar (rutas publicas).

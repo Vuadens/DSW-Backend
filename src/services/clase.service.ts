@@ -102,6 +102,9 @@ const validarReglas = async (data: CrearClaseData, idClaseActual?: number) => {
   if (!profesor) {
     throw new HttpError(400, 'El profesor indicado no existe');
   }
+  if (profesor.fechaBaja !== null) {
+    throw new HttpError(400, 'El profesor indicado está dado de baja');
+  }
 
   // Un profesor no puede dictar dos clases al mismo tiempo.
   // "HH:mm" en 24 hs se compara bien como texto, manejo si fuera de tipo "Date" se vuelve mucho mas engorroso.
