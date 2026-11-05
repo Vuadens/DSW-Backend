@@ -375,6 +375,11 @@ Estas son las reglas que definimos para cada operación. Las valida la API, sin 
 - La fecha de baja no puede ser futura ni anterior a la fecha de alta.
 - Al reactivarlo (quitarle la fecha de baja) recupera el acceso.
 
+**Personas**
+
+- La fecha de nacimiento no puede ser futura ni tener un año anterior a 1900.
+- El socio tiene que tener al menos 14 años y el profesor al menos 18.
+
 **Profesores**
 
 - La baja es lógica: se registra la fecha de baja, se lo quita de sus turnos y se desactiva su cuenta.

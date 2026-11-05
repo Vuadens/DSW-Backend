@@ -1,7 +1,10 @@
 import { z } from 'zod';
-import { emailSchema, personaSchema } from './persona.schema';
+import { emailSchema, fechaNacSchema, personaSchema } from './persona.schema';
+
+export const EDAD_MINIMA_SOCIO = 14;
 
 export const createSocioSchema = personaSchema.extend({
+  fechaNac: fechaNacSchema(EDAD_MINIMA_SOCIO),
   email: emailSchema,
   fechaAlta: z.coerce.date().optional(),
   fechaBaja: z.coerce.date().nullable().optional(),

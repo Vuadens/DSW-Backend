@@ -34,7 +34,14 @@ export const hoy = (ahora: Date = new Date()): Date => {
     return fechaDesdeTexto(texto);
 };
 
-export const sumarDias = (fecha: Date, dias: number): Date => new Date(fecha.getTime() + dias * DIA_MS);
+// true si quien nació en `fechaNac` (fecha a medianoche UTC) ya cumplió `edad` años hoy.
+export const cumpleEdad = (fechaNac: Date, edad: number, ahora: Date = new Date()): boolean => {
+    const hoyAr = hoy(ahora);
+    const limite = Date.UTC(hoyAr.getUTCFullYear() - edad, hoyAr.getUTCMonth(), hoyAr.getUTCDate());
+    return fechaNac.getTime() <= limite;
+};
+
+export const sumarDias =(fecha: Date, dias: number): Date => new Date(fecha.getTime() + dias * DIA_MS);
 
 export const diaSemanaDe = (fecha: Date): Dia => DIAS[fecha.getUTCDay()];
 
