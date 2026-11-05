@@ -6,8 +6,12 @@ import * as PersonaRepository from "./persona.repository";
 
 const incluir = { persona: { include: { usuario: { select: { email: true } } } } } as const;
 
-export async function findAll() {
-    return await prisma.socio.findMany({ include: incluir });
+// Con soloActivos se excluyen los socios dados de baja.
+export async function findAll(soloActivos = false) {
+    return await prisma.socio.findMany({
+        where: soloActivos ? { fechaBaja: null } : {},
+        include: incluir
+    });
 }
 
 export async function findById(id: number) {
@@ -128,9 +132,9 @@ export async function findParaReserva(id: number) {
     });
 }
 
-export async function findAllByPlan(planId: number) {
+export async function findAllByPlan(planId: number, soloActivos = false) {
     return await prisma.socio.findMany({
-        where: { planId },
+        where: { planId, ...(soloActivos ? { fechaBaja: null } : {}) },
         select: {
             idPersona: true,
             fechaAlta: true,

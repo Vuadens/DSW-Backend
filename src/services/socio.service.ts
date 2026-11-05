@@ -12,7 +12,8 @@ export async function getAllSocios(actor: Actor) {
   if (actor.rol === Rol.SOCIO) {
     return [await getSocioById(actor.personaId, actor)];
   }
-  return await socioRepository.findAll();
+  // El profesor no ve a los socios dados de baja.
+  return await socioRepository.findAll(actor.rol === Rol.PROFESOR);
 }
 
 export async function getSocioById(id: number, actor?: Actor) {
@@ -140,7 +141,7 @@ export async function getSociosByPlan(planId: number, actor: Actor) {
     if (actor.rol === Rol.SOCIO) {
         throw new HttpError(403, "No puede acceder al listado de socios por plan");
     }
-    const socios = await socioRepository.findAllByPlan(planId);
+    const socios = await socioRepository.findAllByPlan(planId, actor.rol === Rol.PROFESOR);
     // El estado de la cuota solo lo ve el administrador.
     return socios.map(({ cuotas, fechaAlta, fechaBaja, ...socio }) =>
         actor.rol === Rol.ADMINISTRADOR
@@ -162,6 +163,10 @@ export async function getSocioDetalle(id: number, actor?: Actor) {
     const { cuotas, plan, ...resto } = socio;
 
     if (actor?.rol === Rol.PROFESOR) {
+        // Para el profesor, un socio dado de baja ya no existe.
+        if (socio.fechaBaja !== null) {
+            throw new HttpError(404, "Socio no encontrado");
+        }
         return {
             ...resto,
             plan,

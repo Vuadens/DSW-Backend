@@ -378,6 +378,7 @@ Estas son las reglas que definimos para cada operación. Las valida la API, sin 
 - Al dar de baja a un socio, se cancelan sus reservas de hoy en adelante y se desactiva su cuenta.
 - La fecha de baja no puede ser futura ni anterior a la fecha de alta.
 - Al reactivarlo (quitarle la fecha de baja) recupera el acceso.
+- El profesor no ve a los socios dados de baja, ni en los listados ni en el detalle.
 - El socio puede elegir otro plan activo; el cambio rige desde el primer día del mes siguiente y se puede cancelar hasta entonces.
 - Al aplicarse el cambio se cancelan sus reservas desde ese día de actividades que el plan nuevo no incluye.
 
