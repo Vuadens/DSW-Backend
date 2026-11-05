@@ -92,6 +92,13 @@ export async function getSocioDetalle(id: number, actor?: Actor) {
 
     const { cuotas, plan, ...resto } = socio;
 
+    if (actor?.rol === Rol.PROFESOR) {
+        return {
+            ...resto,
+            plan,
+        };
+    }
+
     return {
         ...resto,
         plan,
