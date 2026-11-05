@@ -352,7 +352,7 @@ Estas son las reglas que definimos para cada operación. Las valida la API, sin 
 
 **Inscripciones**
 
-- El socio tiene que estar activo, tener la cuota del mes paga y un plan que incluya la actividad.
+- El socio tiene que estar activo, no tener cuotas en mora y tener un plan que incluya la actividad.
 - La fecha tiene que coincidir con el día de la clase, y la clase no puede haber comenzado.
 - No se permite superar el cupo ni inscribir dos veces al mismo socio.
 - Las inscripciones se cancelan con baja lógica, antes de que empiece la clase.
@@ -368,6 +368,9 @@ Estas son las reglas que definimos para cada operación. Las valida la API, sin 
 
 - Un mes se cobra una sola vez por socio, y no se pueden cobrar meses futuros.
 - El valor se toma del plan del socio al registrar el cobro.
+- La cuota de cada mes vence el día 10. Hasta ese día está pendiente; desde el 11, si no se pagó, queda en mora.
+- Se adeudan todos los meses impagos desde el alta. Si el socio se da de alta después del día 10, su primera cuota es la del mes siguiente.
+- El estado del socio es `AL_DIA` (no debe nada), `PENDIENTE` (debe solo meses que no vencieron) o `EN_MORA`.
 
 **Socios**
 

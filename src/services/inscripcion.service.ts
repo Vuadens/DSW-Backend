@@ -5,7 +5,8 @@ import { CreateInscripcionInput, InscripcionFiltros } from '../schemas/inscripci
 import { EstadoInscripcion, Rol } from '@prisma/client';
 import { Actor } from './authorization.service';
 import { HttpError } from '../utils/http-error';
-import { diaSemanaDe, finDelDia, hoy, inicioDeClase, primerDiaDelMesActual, sumarDias } from '../utils/fechas';
+import { diaSemanaDe, finDelDia, hoy, inicioDeClase, sumarDias } from '../utils/fechas';
+import { estadoDeCuotas } from './cuota.service';
 
 // Se puede reservar desde hoy hasta esta cantidad de días adelante.
 export const VENTANA_RESERVA_DIAS = 7;
@@ -47,7 +48,7 @@ export const inscripcionService = {
     }
 
     // Regla 1: el socio existe y no está dado de baja
-    const socio = await socioRepository.findParaReserva(data.idSocio, primerDiaDelMesActual());
+    const socio = await socioRepository.findParaReserva(data.idSocio);
     if (!socio) {
       throw new HttpError(400, 'El socio especificado no existe');
     }
@@ -91,9 +92,9 @@ export const inscripcionService = {
       throw new HttpError(400, 'El plan del socio no incluye esta actividad');
     }
 
-    // Regla 7: pagó la cuota del mes actual
-    if (socio.cuotas.length === 0) {
-      throw new HttpError(400, 'El socio adeuda la cuota del mes');
+    // Regla 7: no tiene cuotas en mora (vencidas el día 10 de cada mes)
+    if (estadoDeCuotas(socio).estado === 'EN_MORA') {
+      throw new HttpError(400, 'El socio tiene cuotas en mora');
     }
 
     // Si tenía una reserva cancelada se reactiva: el unique (idSocio, idClase, fechaClase) impide crear otra.

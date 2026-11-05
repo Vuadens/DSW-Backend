@@ -77,25 +77,28 @@ export async function setCuentaActiva(idSocio: number, activo: boolean) {
   return await prisma.usuario.updateMany({ where: { personaId: idSocio }, data: { activo } });
 }
 
-// Lo necesario para validar una reserva: actividades del plan y cuota del mes.
-export async function findParaReserva(id: number, mesActual: Date) {
+// Lo necesario para validar una reserva: actividades del plan y meses pagados (para la mora).
+export async function findParaReserva(id: number) {
     return await prisma.socio.findUnique({
         where: { idPersona: id },
         select: {
+            fechaAlta: true,
             fechaBaja: true,
             plan: { select: { actividades: { select: { id: true } } } },
-            cuotas: { where: { mesAnio: mesActual }, select: { idCuota: true } },
+            cuotas: { select: { mesAnio: true } },
         },
     });
 }
 
-export async function findAllByPlan(planId: number, mesActual: Date) {
+export async function findAllByPlan(planId: number) {
     return await prisma.socio.findMany({
         where: { planId },
         select: {
             idPersona: true,
+            fechaAlta: true,
+            fechaBaja: true,
             persona: { select: { dni: true, nombre: true, apellido: true } },
-            cuotas: { where: { mesAnio: mesActual }, select: { idCuota: true } },
+            cuotas: { select: { mesAnio: true } },
         },
     });
 }

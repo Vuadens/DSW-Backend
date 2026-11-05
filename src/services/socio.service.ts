@@ -3,7 +3,7 @@ import * as PlanRepository from "../repositories/plan.repository";
 import { HttpError } from "../utils/http-error";
 import { Rol } from '@prisma/client';
 import { Actor, esPropietarioSocio } from './authorization.service';
-import { hoy, primerDiaDelMesActual } from '../utils/fechas';
+import { hoy } from '../utils/fechas';
 import { estadoDeCuotas } from './cuota.service';
 import { guardarEmail, nuevaCuenta, validarDniUnico, validarEmailUnico } from './persona.service';
 import { CreateSocioInput, UpdateSocioInput } from '../schemas/socio.schema';
@@ -116,11 +116,11 @@ export async function getSociosByPlan(planId: number, actor: Actor) {
     if (actor.rol === Rol.SOCIO) {
         throw new HttpError(403, "No puede acceder al listado de socios por plan");
     }
-    const socios = await socioRepository.findAllByPlan(planId, primerDiaDelMesActual());
+    const socios = await socioRepository.findAllByPlan(planId);
     // El estado de la cuota solo lo ve el administrador.
-    return socios.map(({ cuotas, ...socio }) =>
+    return socios.map(({ cuotas, fechaAlta, fechaBaja, ...socio }) =>
         actor.rol === Rol.ADMINISTRADOR
-            ? { ...socio, estadoCuota: cuotas.length > 0 ? 'AL_DIA' : 'ADEUDA' }
+            ? { ...socio, estadoCuota: estadoDeCuotas({ fechaAlta, fechaBaja, cuotas }).estado }
             : socio
     );
 }
@@ -148,6 +148,6 @@ export async function getSocioDetalle(id: number, actor?: Actor) {
         ...resto,
         plan,
         cuotas,
-        estadoCuotas: estadoDeCuotas(cuotas),
+        estadoCuotas: estadoDeCuotas(socio),
     };
 }
