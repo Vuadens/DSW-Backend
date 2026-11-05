@@ -399,7 +399,13 @@ Estas son las reglas que definimos para cada operación. Las valida la API, sin 
 
 ## Modelo de dominio
 
-![Modelo de dominio](modelo-dominio.jpg)
+![Modelo de dominio](docs/modelo-dominio.svg)
+
+El diagrama se edita en [`docs/modelo-dominio.excalidraw`](docs/modelo-dominio.excalidraw): abrilo en
+[excalidraw.com](https://excalidraw.com) con *Abrir*, y al terminar exportalo como SVG sobre
+`docs/modelo-dominio.svg`. Las clases en gris y con borde punteado todavía no están implementadas.
+
+El diagrama de la base, generado a partir del schema, está en el [DER](docs/der.md).
 
 ### Herencia de Persona
 
@@ -414,6 +420,11 @@ lleva ese `personaId`.
 
 Acá registramos en qué nos apartamos del modelo de dominio al implementarlo.
 La actualizamos cada vez que cambia el diagrama o el `schema.prisma`.
+
+En noviembre de 2026 actualizamos el diagrama para alinearlo con el código: `Inscripcion` pasó a ser una
+reserva por fecha con estado y asistencia, el horario quedó en `Clase`, `Turno` se relaciona con
+`Profesor`, y sumamos los atributos de `Usuario`, `Plan` y `Actividad`, la baja de `Profesor` y el cambio
+de plan del `Socio`.
 
 #### Lo que quitamos para alinearnos al modelo
 
@@ -430,28 +441,20 @@ Además, `nombre`, `apellido`, `DNI`, `telefono` y `fecha_nac` no los eliminamos
 
 #### Lo que todavía no implementamos
 
+Están en el diagrama, en gris, y por ahora solo existen en el modo demo del frontend:
+
 - **HistoricoSueldo** (`fechaDesde`, `valor`) y su relación con `Profesor` (1 — 1..*).
 - **DetalleCuota** (`concepto`, `subtotal`, `monto`) y su relación con `Cuota` (1..* — 1).
 - **Maquina** (`idMaquina`, `nombre`, `descripcion`, `tipo`, `estado`) y **Mantenimiento**
   (`fechaInicio`, `fechaFinEsperada`, `fechaFinReal`, `descripcion`).
 - **Material** (`idMaterial`, `descripcion`, `stock`).
-- Relación **Clase se dicta en Turno** (0..* — 1).
 - `Actividad.tipo`.
 
-#### Lo que agregamos fuera del modelo
+#### Lo que el código tiene y el diagrama omite
 
-- **Usuario**: `username` se llama `usuario` y es solo un nombre visible, opcional y no
-  único; se accede con `email` o con el DNI de la persona. La fecha de alta se llama
-  `createdAt` (en el modelo, `fechaCreacion`); además tiene `updatedAt`.
-- **Plan**: `descripcion`, `duracionMeses`, `activo`, `createdAt`, `updatedAt`.
-- **Actividad**: `nombre`, `cupoMaximo`, `creadaEn`; la PK se llama `id` (en el modelo,
-  `idActividad`).
-- **Clase**: `diaSemana`, `horaDesde`, `horaHasta`. En el modelo el horario está en `Turno`;
-  en el código cada clase guarda su propio horario.
-- **Turno**: `nombre`, `activo` y una relación muchos a muchos **Turno–Profesor** (turnos de
-  trabajo del personal). En el modelo `Turno` se relaciona con `Clase`, no con `Profesor`.
-- **Inscripcion**: es una reserva para una fecha puntual (`fechaClase`), con `estado`
-  (`CONFIRMADA` / `CANCELADA`, baja lógica) y `asistio`.
+- Las claves foráneas (`planId`, `idProfesor`, `personaId`, etc.): en el diagrama son las asociaciones.
+- Los campos de auditoría `Usuario.updatedAt`, `Plan.createdAt`, `Plan.updatedAt` y `Actividad.creadaEn`.
+- Los valores de los enumerados (`Rol`, `DiaSemana`, `EstadoInscripcion`), que están en el [DER](docs/der.md).
 
 ## Estructura
 
