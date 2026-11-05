@@ -54,6 +54,8 @@ En este repositorio están la API y el esquema de la base de datos. La interfaz 
 
 **Cuidamos el primer acceso.** Cada alta crea su cuenta con una contraseña inicial, y obligamos a cambiarla desde el backend, no solo desde la pantalla.
 
+**Corregimos lo que encontramos al probar.** Pasamos los profesores a baja lógica, cortamos el acceso de las cuentas dadas de baja en el momento y dejamos que el socio se dé de baja y cambie de plan por su cuenta. También fijamos el vencimiento de las cuotas el día 10, con la misma regla de mora en la API y en el frontend.
+
 ## Arquitectura
 
 Organizamos el código en capas: cada pedido atraviesa la validación y los permisos antes de llegar a la lógica de negocio y a la persistencia.
@@ -239,9 +241,13 @@ Las cuentas usan la contraseña `DEMO_PASSWORD`, y se puede ingresar con email o
 | Profesor | `marcos.benitez@hadesgym.com` | `28450111` |
 | Profesor | `sofia.rossi@hadesgym.com` | `33120458` |
 | Socio al día | `lucas.fernandez@gmail.com` | `38450192` |
-| Socio que adeuda | `ignacio.sosa@outlook.com` | `36980112` |
+| Socio que adeuda la cuota del mes | `ignacio.sosa@outlook.com` | `36980112` |
 
-El resto de las cuentas está en `prisma/seed.ts`. Las cuotas de demo pertenecen al mes en que se corre el seed: al cambiar el mes, los socios pasan a adeudar la cuota.
+El resto de las cuentas está en `prisma/seed.ts`. Las cuotas de demo pertenecen al mes en que se corre el seed, y la fecha de alta de los socios es ese mismo día:
+
+- Si corrés el seed hasta el día 10, Ignacio y Julieta deben la cuota del mes: queda pendiente hasta el 10 y en mora desde el 11.
+- Si lo corrés después del 10, su primera cuota es la del mes siguiente, así que no deben nada.
+- Al cambiar el mes, los socios pasan a deber la cuota nueva, y desde el día 11 quedan en mora.
 
 ## Autenticación
 
@@ -342,7 +348,7 @@ Los errores responden con un mensaje en formato JSON:
 | Código | Significado |
 |---|---|
 | `400` | Datos inválidos o regla de negocio incumplida |
-| `401` | Sin sesión, o token inválido o vencido |
+| `401` | Sin sesión, token inválido o vencido, o cuenta desactivada |
 | `403` | Sin permiso, o contraseña inicial pendiente de cambio |
 | `404` | Recurso inexistente |
 | `409` | Conflicto, por ejemplo un valor repetido o registros relacionados |
@@ -473,6 +479,8 @@ Están en el diagrama, en gris, y por ahora solo existen en el modo demo del fro
 │   ├── utils/           Fechas, JWT, contraseñas y errores
 │   ├── app.ts           Aplicación Express
 │   └── server.ts        Punto de entrada
+├── docs/                Modelo de dominio, DER y especificaciones
+├── scripts/             Generación del DER
 └── tests/               Pruebas unitarias y de integración
 ```
 
@@ -488,7 +496,9 @@ Están en el diagrama, en gris, y por ahora solo existen en el modo demo del fro
 | `Unknown database` | Creá la base del paso 2 |
 | Falla una migración en una base vieja | Si no necesitás los datos, usá `npx prisma migrate reset` |
 | Las cuentas de demo no ingresan | El seed no las carga si la base ya tiene planes. Usá una base vacía |
-| Un socio al día no puede reservar | Cambió el mes desde el seed: registrá su cobro o recreá los datos |
+| Un socio no puede reservar por cuotas en mora | Desde el día 11 debe la cuota del mes: registrá su cobro o recreá los datos |
+| Después de recrear la base, la sesión se cierra con 401 | El token es de un usuario que ya no existe: volvé a ingresar |
+| `EPERM` al correr `npx prisma generate` en Windows | El servidor tiene tomado el motor de Prisma: frenalo, generá y volvé a iniciarlo |
 
 ## Equipo
 
