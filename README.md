@@ -221,6 +221,7 @@ Corré Prisma dentro de esta carpeta y después de `npm install`. Fuera de ella,
 | `npm run seed` | Carga los datos iniciales |
 | `npm run prisma:generate` | Genera el cliente de Prisma |
 | `npm run prisma:migrate` | Crea y aplica una migración en desarrollo |
+| `npm run der` | Genera el [DER](docs/der.md) a partir de `prisma/schema.prisma`. Corré antes `npx prisma generate` |
 | `npm test` | Pruebas con Jest. Todavía no escribimos pruebas |
 
 ## Datos de demo
