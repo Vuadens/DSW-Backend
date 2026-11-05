@@ -290,7 +290,9 @@ Roles: **A** administrador, **P** profesor, **S** socio. Público significa que 
 | `GET` | `/socios/:id` | A, P, S | Detalle con plan, cuotas y estado |
 | `PATCH` `PUT` `DELETE` | `/socios/:id` | A | Modificar y eliminar |
 | `GET` | `/profesores` `/profesores/:id` | A, P | Listar y consultar |
-| `POST` `DELETE` | `/profesores` `/profesores/:id` | A | Crear y eliminar |
+| `POST` | `/profesores` | A | Crear |
+| `DELETE` | `/profesores/:id` | A | Dar de baja (baja lógica) |
+| `PATCH` | `/profesores/:id/reactivar` | A | Reactivar un profesor dado de baja |
 | `PATCH` | `/profesores/:id` | A, P | Modificar |
 | `GET` `POST` | `/administradores` | A | Listar y crear |
 | `GET` `PATCH` `DELETE` | `/administradores/:id` | A | Consultar, modificar y eliminar |
@@ -357,6 +359,7 @@ Estas son las reglas que definimos para cada operación. Las valida la API, sin 
 **Clases**
 
 - Un profesor no puede dictar dos clases superpuestas.
+- No se puede asignar una clase ni un turno a un profesor dado de baja.
 - El cupo no puede quedar por debajo de los inscriptos de una fecha próxima.
 
 **Cuotas**
@@ -367,6 +370,16 @@ Estas son las reglas que definimos para cada operación. Las valida la API, sin 
 **Socios**
 
 - Al dar de baja a un socio, se cancelan sus reservas de hoy en adelante.
+
+**Profesores**
+
+- La baja es lógica: se registra la fecha de baja, se lo quita de sus turnos y se desactiva su cuenta.
+- No se puede dar de baja a un profesor con clases asignadas.
+- Al reactivarlo recupera el acceso; los turnos se le asignan de nuevo.
+
+**Acceso**
+
+- Una cuenta desactivada no puede ingresar, y su token deja de servir en el momento.
 
 ## Modelo de dominio
 

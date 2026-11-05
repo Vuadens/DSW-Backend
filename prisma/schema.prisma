@@ -44,6 +44,8 @@ model Profesor {
   idPersona  Int     @id
   persona    Persona @relation(fields: [idPersona], references: [idPersona], onDelete: Cascade)
   cargo      String
+  // Baja lógica: el profesor deja de operar y su cuenta se desactiva.
+  fechaBaja  DateTime?
   clases     Clase[]
   turnos     Turno[]
 }

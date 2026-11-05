@@ -42,8 +42,18 @@ export const updateProfesor = async (peticion: Request, respuesta: Response, nex
 export const deleteProfesor = async (peticion: Request, respuesta: Response, next: NextFunction) => {
 	try {
 		const { id } = peticion.params;
-		await ProfesorService.eliminarProfesor(Number(id));
-		respuesta.status(200).json({ message: 'Profesor eliminado correctamente' });
+		const profesor = await ProfesorService.darDeBajaProfesor(Number(id));
+		respuesta.status(200).json(profesor);
+	} catch (error) {
+		next(error);
+	}
+};
+
+export const reactivarProfesor = async (peticion: Request, respuesta: Response, next: NextFunction) => {
+	try {
+		const { id } = peticion.params;
+		const profesor = await ProfesorService.reactivarProfesor(Number(id));
+		respuesta.status(200).json(profesor);
 	} catch (error) {
 		next(error);
 	}
