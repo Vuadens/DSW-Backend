@@ -8,10 +8,11 @@ import {
   updateSocio,
   deleteSocio,
   darDeBajaSocio,
-  reactivarSocio
+  reactivarSocio,
+  cambiarPlan
 } from "../controllers/socio.controller";
 import { validate } from "../middlewares/validate.middleware";
-import { bajaSocioSchema, createSocioSchema, updateSocioSchema } from "../../schemas/socio.schema";
+import { bajaSocioSchema, cambioDePlanSchema, createSocioSchema, updateSocioSchema } from "../../schemas/socio.schema";
 
 export const socioRouter = Router();
 
@@ -22,5 +23,7 @@ socioRouter.patch("/:id", authorize(Rol.ADMINISTRADOR), validate(updateSocioSche
 socioRouter.put("/:id", authorize(Rol.ADMINISTRADOR), validate(updateSocioSchema), updateSocio);
 // Baja lógica: el socio puede darse de baja a sí mismo.
 socioRouter.patch("/:id/baja", authorize(Rol.ADMINISTRADOR, Rol.SOCIO), validate(bajaSocioSchema), darDeBajaSocio);
+// El socio elige el plan que rige desde el mes siguiente.
+socioRouter.patch("/:id/plan", authorize(Rol.ADMINISTRADOR, Rol.SOCIO), validate(cambioDePlanSchema), cambiarPlan);
 socioRouter.patch("/:id/reactivar", authorize(Rol.ADMINISTRADOR), reactivarSocio);
 socioRouter.delete("/:id", authorize(Rol.ADMINISTRADOR), deleteSocio);

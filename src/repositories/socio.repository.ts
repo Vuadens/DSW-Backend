@@ -72,6 +72,44 @@ export async function cancelarReservasFuturas(idSocio: number, desde: Date) {
   });
 }
 
+// Programa (o cancela, con null) el cambio de plan del socio.
+export async function programarCambioDePlan(id: number, planProximoId: number | null, planProximoDesde: Date | null) {
+    return await prisma.socio.update({
+        where: { idPersona: id },
+        data: { planProximoId, planProximoDesde },
+        include: incluir
+    });
+}
+
+// Aplica los cambios de plan cuya fecha ya llegó. Las reservas desde ese día de actividades
+// que el plan nuevo no incluye se cancelan.
+export async function aplicarCambiosDePlan(hasta: Date) {
+    const pendientes = await prisma.socio.findMany({
+        where: { planProximoDesde: { lte: hasta } },
+        select: { idPersona: true, planProximoId: true, planProximoDesde: true },
+    });
+    for (const { idPersona, planProximoId, planProximoDesde } of pendientes) {
+        const limpiar = { planProximoId: null, planProximoDesde: null };
+        // Si el plan elegido se borró, la FK dejó planProximoId en null: solo se descarta el cambio.
+        if (planProximoId === null) {
+            await prisma.socio.update({ where: { idPersona }, data: limpiar });
+            continue;
+        }
+        await prisma.$transaction([
+            prisma.socio.update({ where: { idPersona }, data: { planId: planProximoId, ...limpiar } }),
+            prisma.inscripcion.updateMany({
+                where: {
+                    idSocio: idPersona,
+                    estado: EstadoInscripcion.CONFIRMADA,
+                    fechaClase: { gte: planProximoDesde! },
+                    clase: { actividad: { planes: { none: { idPlan: planProximoId } } } },
+                },
+                data: { estado: EstadoInscripcion.CANCELADA },
+            }),
+        ]);
+    }
+}
+
 // Activa o desactiva la cuenta de acceso del socio (por ejemplo, al darlo de baja).
 export async function setCuentaActiva(idSocio: number, activo: boolean) {
   return await prisma.usuario.updateMany({ where: { personaId: idSocio }, data: { activo } });

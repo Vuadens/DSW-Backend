@@ -3,7 +3,7 @@ import * as PlanRepository from "../repositories/plan.repository";
 import { HttpError } from "../utils/http-error";
 import { Rol } from '@prisma/client';
 import { Actor, esPropietarioSocio } from './authorization.service';
-import { hoy } from '../utils/fechas';
+import { hoy, primerDiaDelMesActual } from '../utils/fechas';
 import { estadoDeCuotas } from './cuota.service';
 import { guardarEmail, nuevaCuenta, validarDniUnico, validarEmailUnico } from './persona.service';
 import { CreateSocioInput, UpdateSocioInput } from '../schemas/socio.schema';
@@ -94,6 +94,30 @@ export async function darDeBajaSocio(id: number, actor: Actor, fechaBaja?: Date)
   const actualizado = await socioRepository.update(id, { fechaBaja: fecha });
   await aplicarBaja(id);
   return actualizado;
+}
+
+// Aplica los cambios de plan programados cuyo mes ya empezó.
+export const aplicarCambiosDePlan = () => socioRepository.aplicarCambiosDePlan(hoy());
+
+// El socio elige el plan al que se pasa desde el mes siguiente; con null cancela el cambio.
+export async function programarCambioDePlan(id: number, planId: number | null, actor: Actor) {
+  const socio = await getSocioById(id, actor);
+  if (socio.fechaBaja !== null) {
+    throw new HttpError(409, "El socio está dado de baja");
+  }
+  if (planId === null) {
+    return await socioRepository.programarCambioDePlan(id, null, null);
+  }
+  const plan = await PlanRepository.obtenerPlanPorId(planId);
+  if (!plan || !plan.activo) {
+    throw new HttpError(400, "El plan indicado no existe o no está activo");
+  }
+  if (plan.idPlan === socio.planId) {
+    throw new HttpError(400, "El socio ya tiene ese plan");
+  }
+  const mesActual = primerDiaDelMesActual();
+  const mesSiguiente = new Date(Date.UTC(mesActual.getUTCFullYear(), mesActual.getUTCMonth() + 1, 1));
+  return await socioRepository.programarCambioDePlan(id, planId, mesSiguiente);
 }
 
 export async function reactivarSocio(id: number) {

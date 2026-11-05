@@ -24,6 +24,14 @@ export const bajaSocioSchema = z.object({
   fechaBaja: z.coerce.date({ invalid_type_error: 'Fecha de baja inválida' }).optional(),
 });
 
+// Plan al que se pasa el socio desde el mes siguiente; null cancela el cambio pendiente.
+export const cambioDePlanSchema = z.object({
+  planId: z.number({
+    required_error: 'El planId es obligatorio',
+    invalid_type_error: 'El planId debe ser un número entero',
+  }).int().positive('El planId debe ser mayor a 0').nullable(),
+});
+
 export const socioIdSchema = z.object({
   id: z.coerce.number().int().positive('El id debe ser un entero positivo'),
 });

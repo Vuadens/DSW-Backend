@@ -18,7 +18,9 @@ model Plan {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  socios      Socio[]
+  socios      Socio[] @relation("PlanActual")
+  // Socios que eligieron pasarse a este plan desde el mes siguiente.
+  sociosProximos Socio[] @relation("PlanProximo")
   // Actividades que incluye el plan: un socio solo reserva clases de estas actividades.
   actividades Actividad[]
 }
@@ -78,7 +80,11 @@ model Socio {
   fechaBaja  DateTime?
 
   planId Int
-  plan   Plan    @relation(fields: [planId], references: [idPlan])
+  plan   Plan    @relation("PlanActual", fields: [planId], references: [idPlan])
+  // Cambio de plan elegido por el socio: rige desde el primer día de `planProximoDesde`.
+  planProximoId    Int?
+  planProximo      Plan?     @relation("PlanProximo", fields: [planProximoId], references: [idPlan])
+  planProximoDesde DateTime?
   cuotas Cuota[]
   inscripciones Inscripcion[]
 }

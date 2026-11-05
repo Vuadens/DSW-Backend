@@ -11,10 +11,12 @@ import {usuarioRouter} from './usuario.routes';
 import {cuotaRouter} from './cuota.routes';
 import turnoRouter from './turno.routes';
 import {optionalAuthenticate} from '../middlewares/auth.middleware';
+import {aplicarCambiosDePlan} from '../controllers/socio.controller';
 
 export const apiRouter = Router();
 apiRouter.get('/health', (_req, res) => res.json({ status: 'ok' }));
 apiRouter.use(optionalAuthenticate);
+apiRouter.use(['/socios', '/cuotas', '/inscripciones'], aplicarCambiosDePlan);
 apiRouter.use('/auth', authRouter);
 apiRouter.use('/usuarios', usuarioRouter);
 apiRouter.use('/cuotas', cuotaRouter);

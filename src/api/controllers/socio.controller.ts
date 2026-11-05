@@ -75,6 +75,31 @@ export async function darDeBajaSocio(req: Request, res: Response, next: NextFunc
     }
 }
 
+export async function cambiarPlan(req: Request, res: Response, next: NextFunction) {
+    const id = Number(req.params.id);
+
+    if (isNaN(id)) {
+        return res.status(400).json({ error: "El id debe ser un número" });
+    }
+
+    try {
+        const socio = await socioService.programarCambioDePlan(id, req.body.planId, req.user!);
+        res.json(socio);
+    } catch (error) {
+        next(error);
+    }
+}
+
+// Antes de operar con socios, cuotas o reservas se aplican los cambios de plan que ya rigen.
+export async function aplicarCambiosDePlan(_req: Request, _res: Response, next: NextFunction) {
+    try {
+        await socioService.aplicarCambiosDePlan();
+        next();
+    } catch (error) {
+        next(error);
+    }
+}
+
 export async function reactivarSocio(req: Request, res: Response, next: NextFunction) {
     const id = Number(req.params.id);
 
