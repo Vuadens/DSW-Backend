@@ -29,7 +29,9 @@ export const authenticate = async (req: Request, _res: Response, next: NextFunct
     // en el momento, aunque su token todavía no haya vencido.
     try {
         const cuenta = await usuarioRepository.findById(user.id);
-        if (!cuenta || !cuenta.activo) return next(new HttpError(401, 'La cuenta está desactivada'));
+        // Sin cuenta, el token es de un usuario que ya no existe (por ejemplo, tras recrear la base).
+        if (!cuenta) return next(new HttpError(401, 'Token inválido o vencido'));
+        if (!cuenta.activo) return next(new HttpError(401, 'La cuenta está desactivada'));
     } catch (error) {
         return next(error);
     }
