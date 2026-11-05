@@ -72,6 +72,11 @@ export async function cancelarReservasFuturas(idSocio: number, desde: Date) {
   });
 }
 
+// Activa o desactiva la cuenta de acceso del socio (por ejemplo, al darlo de baja).
+export async function setCuentaActiva(idSocio: number, activo: boolean) {
+  return await prisma.usuario.updateMany({ where: { personaId: idSocio }, data: { activo } });
+}
+
 // Lo necesario para validar una reserva: actividades del plan y cuota del mes.
 export async function findParaReserva(id: number, mesActual: Date) {
     return await prisma.socio.findUnique({

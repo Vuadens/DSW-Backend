@@ -60,6 +60,36 @@ export async function updateSocio(req: Request, res: Response, next: NextFunctio
     }
 }
 
+export async function darDeBajaSocio(req: Request, res: Response, next: NextFunction) {
+    const id = Number(req.params.id);
+
+    if (isNaN(id)) {
+        return res.status(400).json({ error: "El id debe ser un número" });
+    }
+
+    try {
+        const socio = await socioService.darDeBajaSocio(id, req.user!, req.body.fechaBaja);
+        res.json(socio);
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function reactivarSocio(req: Request, res: Response, next: NextFunction) {
+    const id = Number(req.params.id);
+
+    if (isNaN(id)) {
+        return res.status(400).json({ error: "El id debe ser un número" });
+    }
+
+    try {
+        const socio = await socioService.reactivarSocio(id);
+        res.json(socio);
+    } catch (error) {
+        next(error);
+    }
+}
+
 export async function deleteSocio(req: Request, res: Response, next: NextFunction) {
     const id = Number(req.params.id);
 

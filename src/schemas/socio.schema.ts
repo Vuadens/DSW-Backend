@@ -16,6 +16,11 @@ export const updateSocioSchema = createSocioSchema.partial();
 // Alta pública: el sistema completa la fecha de alta y el socio no puede fijar su baja.
 export const registroSocioSchema = createSocioSchema.omit({ fechaAlta: true, fechaBaja: true });
 
+// Sin fecha, la baja es de hoy. Solo el administrador puede indicar otra.
+export const bajaSocioSchema = z.object({
+  fechaBaja: z.coerce.date({ invalid_type_error: 'Fecha de baja inválida' }).optional(),
+});
+
 export const socioIdSchema = z.object({
   id: z.coerce.number().int().positive('El id debe ser un entero positivo'),
 });

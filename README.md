@@ -289,6 +289,8 @@ Roles: **A** administrador, **P** profesor, **S** socio. Público significa que 
 | `POST` | `/socios` | A | Crear |
 | `GET` | `/socios/:id` | A, P, S | Detalle con plan, cuotas y estado |
 | `PATCH` `PUT` `DELETE` | `/socios/:id` | A | Modificar y eliminar |
+| `PATCH` | `/socios/:id/baja` | A, S | Dar de baja. El socio se da de baja a sí mismo con fecha de hoy; el admin puede enviar `{ "fechaBaja": "2026-11-05" }` |
+| `PATCH` | `/socios/:id/reactivar` | A | Reactivar un socio dado de baja |
 | `GET` | `/profesores` `/profesores/:id` | A, P | Listar y consultar |
 | `POST` | `/profesores` | A | Crear |
 | `DELETE` | `/profesores/:id` | A | Dar de baja (baja lógica) |
@@ -369,7 +371,9 @@ Estas son las reglas que definimos para cada operación. Las valida la API, sin 
 
 **Socios**
 
-- Al dar de baja a un socio, se cancelan sus reservas de hoy en adelante.
+- Al dar de baja a un socio, se cancelan sus reservas de hoy en adelante y se desactiva su cuenta.
+- La fecha de baja no puede ser futura ni anterior a la fecha de alta.
+- Al reactivarlo (quitarle la fecha de baja) recupera el acceso.
 
 **Profesores**
 
